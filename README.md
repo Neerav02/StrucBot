@@ -79,8 +79,7 @@ Your application will be available at http://localhost:5174.
 ⚙️ Configuration
 Your backend server requires a .env file with the following variables:
 
-# Get a free API key from Google AI Studio for the Gemini model
-GEMINI_API_KEY=your_google_gemini_api_key_here
+
 
 # Get a free API key from X for groq model
 GROQ_API_KEY = your_groq_api_key_here
