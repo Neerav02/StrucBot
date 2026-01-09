@@ -27,7 +27,7 @@ Axios (API Requests), Lucide React (Icons)
 
 Backend -
 Node.js, Express.js
-Google Gemini API (AI Model)
+Google Gemini API (AI Model), Grok API 
 JSON Web Tokens (JWT for Authentication)
 Bcrypt.js (Password Hashing)
 In-Memory Storage (for Demo Mode)
