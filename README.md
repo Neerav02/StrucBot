@@ -72,7 +72,7 @@ Install the dependencies:
 npm install
 
 Start the frontend development server:
-npm start
+npm run dev
 
 Your application will be available at http://localhost:5174.
 
