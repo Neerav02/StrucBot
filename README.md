@@ -69,7 +69,7 @@ Setup the Frontend:
 Open a new terminal and navigate to the frontend directory:
 cd ai-database-frontend
 
-Install the dependencies:
+Install the  dependencies:
 npm install
 
 Start the frontend development server:
