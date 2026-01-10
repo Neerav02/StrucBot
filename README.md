@@ -18,7 +18,7 @@ Responsive Design: A polished and fully responsive interface that works beautifu
 
 Demo Mode Backend: The Node.js server runs with in-memory storage out-of-the-box, so no database configuration is needed to get started.
 
-Connected to postgreSQL for secure storing of data.
+
 
 🛠️ Tech Stack:-
 Frontend - 
