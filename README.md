@@ -46,7 +46,6 @@ A free Google Gemini API Key. You can get one from Google AI Studio.
 
 Installation
 Clone the repository:
-
 git clone - https://github.com/Neerav02/StrucBot.git
 cd strucbot-ai
 
