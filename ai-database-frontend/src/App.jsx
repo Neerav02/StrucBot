@@ -5,9 +5,12 @@ import { useAuthStore } from './stores/authStore';
 // Import Pages and Components
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginForm from './pages/login';
-import RegisterForm from './pages/register';
-import Chatbot from './pages/chatbot';
+import LoginForm from './pages/Login';
+import RegisterForm from './pages/Register';
+import Chatbot from './pages/Chatbot';
+import SchemaEditor from './pages/SchemaEditor';
+import ERDiagram from './pages/ERDiagram';
+import Templates from './pages/Templates';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 
@@ -24,6 +27,9 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/editor" element={<SchemaEditor />} />
+          <Route path="/diagram" element={<ERDiagram />} />
+          <Route path="/templates" element={<Templates />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
