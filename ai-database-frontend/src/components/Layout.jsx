@@ -28,6 +28,10 @@ const Layout = () => {
   }, [user, setProjects, activeProject, setActiveProject]);
 
   const handleCreateProject = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     const name = window.prompt('Enter new workspace name:');
     if (!name || !name.trim()) return;
     try {
@@ -166,45 +170,46 @@ const Layout = () => {
 
         {/* User section */}
         <div className="p-3 border-t border-[var(--sb-border)]">
-          <div className={`flex items-center gap-3 px-3 py-2 mb-2 rounded-xl bg-white/[0.03] ${collapsed ? 'justify-center' : ''}`}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)' }}
-            >
-              {user?.username?.charAt(0).toUpperCase() || 'U'}
+          {user ? (
+            <>
+              <div className={`flex items-center gap-3 px-3 py-2 mb-2 rounded-xl bg-white/[0.03] ${collapsed ? 'justify-center' : ''}`}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)' }}
+                >
+                  {user.username?.charAt(0).toUpperCase()}
+                </div>
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.div
+                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <p className="text-sm font-medium text-white truncate">{user.username}</p>
+                      <p className="text-[10px] text-[var(--sb-text-muted)] truncate">{user.email}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <button
+                onClick={handleLogout}
+                className={`flex items-center gap-3 px-3 py-2 rounded-xl w-full text-left text-[var(--sb-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all text-sm ${collapsed ? 'justify-center' : ''}`}
+              >
+                <LogOut size={18} className="flex-shrink-0" />
+                <AnimatePresence>
+                  {!collapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>Logout</motion.span>}
+                </AnimatePresence>
+              </button>
+            </>
+          ) : (
+            <div className={`space-y-1 ${collapsed ? 'flex flex-col items-center' : ''}`}>
+              <button onClick={() => navigate('/login')} className={`w-full flex justify-center items-center py-2 px-3 rounded-lg text-sm font-semibold transition-all hover:bg-white/5 border-2 border-transparent ${collapsed ? 'w-10 h-10 p-0' : ''}`}>
+                {collapsed ? <User size={16} /> : 'Log in'}
+              </button>
+              <button onClick={() => navigate('/register')} className={`w-full flex justify-center items-center py-2 px-3 rounded-lg text-sm font-semibold transition-all text-white ${collapsed ? 'w-10 h-10 p-0' : ''}`} style={{ background: 'var(--sb-gradient-accent)' }}>
+                {collapsed ? <Plus size={16} /> : 'Sign up'}
+              </button>
             </div>
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <p className="text-sm font-medium text-white truncate">{user?.username || 'User'}</p>
-                  <p className="text-[10px] text-[var(--sb-text-muted)] truncate">{user?.email || ''}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className={`flex items-center gap-3 px-3 py-2 rounded-xl w-full text-left text-[var(--sb-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all text-sm ${collapsed ? 'justify-center' : ''}`}
-          >
-            <LogOut size={18} className="flex-shrink-0" />
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  Logout
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </button>
+          )}
         </div>
       </motion.aside>
 

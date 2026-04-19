@@ -4,6 +4,8 @@ import { Send, Bot, User, Trash2, CheckCircle, AlertTriangle, Copy, Check, Code,
 import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
 import { useProjectStore } from '../stores/projectStore';
+import { useAuthStore } from '../stores/authStore';
+import { useNavigate } from 'react-router-dom';
 
 // ---- Toast notification ----
 const Toast = ({ message, type, onClear }) => {
@@ -261,10 +263,13 @@ const Chatbot = () => {
   };
 
   const { activeProject } = useProjectStore();
+  const { token } = useAuthStore();
+  const navigate = useNavigate();
 
   // Load existing schemas with their prompts
   useEffect(() => {
     const loadHistory = async () => {
+      if (!token) return; // public dashboard, do not fetch history
       try {
         const url = activeProject ? `/schemas?project_id=${activeProject.id}` : '/schemas';
         const response = await api.get(url);
@@ -295,6 +300,10 @@ const Chatbot = () => {
   }, [activeProject]);
 
   const handleSend = async (prompt) => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
     const userMessage = { sender: 'user', type: 'text', content: prompt, id: uuidv4() };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);

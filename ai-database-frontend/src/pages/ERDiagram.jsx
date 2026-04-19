@@ -4,6 +4,8 @@ import { GitBranch, RefreshCw, Loader, ZoomIn, ZoomOut, Download, Table2 } from 
 import mermaid from 'mermaid';
 import api from '../services/api';
 import { useProjectStore } from '../stores/projectStore';
+import { useAuthStore } from '../stores/authStore';
+import { useNavigate } from 'react-router-dom';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -35,8 +37,11 @@ const ERDiagram = () => {
   const [error, setError] = useState('');
   const diagramRef = useRef(null);
   const { activeProject } = useProjectStore();
+  const { token } = useAuthStore();
+  const navigate = useNavigate();
 
   const loadDiagram = useCallback(async () => {
+    if (!token) return;
     setIsLoading(true);
     setError('');
     try {
@@ -93,7 +98,7 @@ const ERDiagram = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [activeProject]);
+  }, [activeProject, token]);
 
   useEffect(() => { loadDiagram(); }, [loadDiagram]);
 
@@ -149,30 +154,43 @@ const ERDiagram = () => {
           </div>
         )}
 
-        {/* Loading */}
-        {isLoading && (
-          <div className="glass-card p-20 flex items-center justify-center">
-            <Loader className="animate-spin text-amber-400" size={24} />
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!isLoading && schemas.length === 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-              <GitBranch size={28} className="text-amber-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">No schemas to visualize</h3>
-            <p className="text-sm text-[var(--sb-text-muted)] max-w-sm mx-auto">
-              Generate some schemas in <span className="text-amber-400">Schema Chat</span> first, then come back to see the ER diagram.
-            </p>
-          </motion.div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="glass-card p-8 text-center text-red-300 text-sm">{error}</div>
-        )}
+        {/* Main Content Area */}
+        <div className="flex-1 min-h-[500px] flex items-center justify-center relative z-10 w-full overflow-hidden p-4 sm:p-8">
+          {!token ? (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+              <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[var(--sb-border)]">
+                <GitBranch className="text-amber-400" size={28} />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Login Required</h2>
+              <p className="text-[var(--sb-text-muted)] text-sm max-w-[280px] mx-auto mb-6">
+                You must sign in to generate and view relationship diagrams.
+              </p>
+              <button onClick={() => navigate('/login')} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
+                Sign In
+              </button>
+            </motion.div>
+          ) : isLoading ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center text-[var(--sb-text-muted)] gap-3">
+              <Loader className="animate-spin text-amber-500" size={32} />
+              <span className="text-sm font-medium tracking-wide">Rendering diagram...</span>
+            </motion.div>
+          ) : error ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center text-red-400/80 max-w-sm text-center">
+              <GitBranch size={32} className="mb-3 opacity-50" />
+              <p className="text-sm">{error}</p>
+            </motion.div>
+          ) : !schemas.length ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+              <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <GitBranch className="text-amber-400" size={28} />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">No schemas to visualize</h2>
+              <p className="text-[var(--sb-text-muted)] text-sm max-w-[280px] mx-auto">
+                Generate some schemas in <span className="text-amber-400 font-medium">Schema Chat</span> first, then come back to see the ER diagram.
+              </p>
+            </motion.div>
+          ) : null}
+        </div>
 
         {/* Diagram */}
         {!isLoading && svgContent && (

@@ -28,11 +28,10 @@ api.interceptors.response.use(
   (error) => {
     // Check if the error is due to authentication (401 or 403)
     if (error.response && [401, 403].includes(error.response.status)) {
-      console.log('Authentication error, logging out...');
-      // Use the logout function from your authStore to clear user and token
+      console.log('Authentication error, logging out session state...');
+      // Use the logout function from your authStore to clear user and token securely
       useAuthStore.getState().logout(); 
-      // Optionally redirect to the login page
-      window.location.href = '/login';
+      // Do NOT force redirect window so public pages functionally stay visually intact
     }
     return Promise.reject(error);
   }

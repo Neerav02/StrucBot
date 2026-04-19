@@ -4,7 +4,6 @@ import { useAuthStore } from './stores/authStore';
 
 // Import Pages and Components
 import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
 import LoginForm from './pages/Login';
 import RegisterForm from './pages/Register';
 import Chatbot from './pages/Chatbot';
@@ -23,16 +22,14 @@ function App() {
       <Route path="/login" element={<LoginForm />} />
       <Route path="/register" element={<RegisterForm />} />
       
-      {/* Protected routes are nested inside here. They will only be accessible if the user is logged in. */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<Layout />}>
-          <Route path="/chatbot" element={<Chatbot />} />
-          <Route path="/editor" element={<SchemaEditor />} />
-          <Route path="/diagram" element={<ERDiagram />} />
-          <Route path="/templates" element={<Templates />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
+      {/* Dashboard routes are now accessible to guests. Components will handle auth. */}
+      <Route element={<Layout />}>
+        <Route path="/chatbot" element={<Chatbot />} />
+        <Route path="/editor" element={<SchemaEditor />} />
+        <Route path="/diagram" element={<ERDiagram />} />
+        <Route path="/templates" element={<Templates />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
       
       {/* This is the default route handler.

@@ -118,12 +118,19 @@ app.post('/api/auth/register', async (req, res) => {
     if (existing.rows.length > 0) return res.status(400).json({ error: 'Username or email already exists' });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    await pool.query(
-      'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4)',
+    const result = await pool.query(
+      'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
       [username, email, passwordHash, 'user']
     );
+    const userId = result.rows[0].id;
+    const token = jwt.sign({ id: userId, username, role: 'user' }, jwtSecret, { expiresIn: '7d' });
+
     console.log(`✅ New user registered: ${username}`);
-    res.status(201).json({ message: 'User created successfully' });
+    res.status(201).json({ 
+      message: 'User created successfully',
+      user: { id: userId, username, email },
+      token
+    });
   } catch (err) {
     console.error('Register error:', err.message);
     res.status(500).json({ error: 'Registration failed' });

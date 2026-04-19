@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Loader, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Flame, Loader, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { useAuthStore } from '../stores/authStore';
 import api from '../services/api';
 
 const Particle = ({ delay, x, y, size }) => (
@@ -12,7 +13,7 @@ const Particle = ({ delay, x, y, size }) => (
       top: `${y}%`,
       width: size,
       height: size,
-      background: `radial-gradient(circle, rgba(34,211,238,0.25) 0%, transparent 70%)`,
+      background: `radial-gradient(circle, rgba(212,160,23,0.25) 0%, transparent 70%)`,
     }}
     animate={{
       y: [-20, 20, -20],
@@ -35,6 +36,7 @@ const RegisterForm = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
   const particles = useRef(
@@ -60,9 +62,12 @@ const RegisterForm = () => {
     setSuccess('');
 
     try {
-      await api.post('/auth/register', formData);
+      const response = await api.post('/auth/register', formData);
       setSuccess('Account created successfully!');
-      setTimeout(() => navigate('/login'), 2000);
+      setTimeout(() => {
+        login(response.data.user, response.data.token);
+        navigate('/chatbot');
+      }, 1000);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
@@ -75,7 +80,7 @@ const RegisterForm = () => {
       {particles.map(p => <Particle key={p.id} {...p} />)}
 
       <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `linear-gradient(rgba(34,211,238,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.5) 1px, transparent 1px)`,
+        backgroundImage: `linear-gradient(rgba(212,160,23,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(212,160,23,0.4) 1px, transparent 1px)`,
         backgroundSize: '60px 60px',
       }} />
 
@@ -88,11 +93,12 @@ const RegisterForm = () => {
         {/* Logo */}
         <motion.div className="text-center mb-8" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <motion.div
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 via-amber-500 to-purple-500 shadow-2xl mb-4"
-            animate={{ rotate: [0, -5, 5, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-2xl mb-4"
+            style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626, #e87a1e)', boxShadow: '0 0 40px rgba(212,160,23,0.3), 0 8px 32px rgba(0,0,0,0.4)' }}
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <Sparkles size={30} className="text-white" />
+            <Flame size={30} className="text-white" />
           </motion.div>
           <h1 className="text-3xl font-bold text-white mb-1">Create account</h1>
           <p className="text-[var(--sb-text-muted)] text-sm">Start building schemas with AI</p>
@@ -175,7 +181,7 @@ const RegisterForm = () => {
               type="submit" disabled={isLoading}
               id="register-submit"
               className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-semibold text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              style={{ background: 'linear-gradient(135deg, #22d3ee 0%, #6366f1 100%)' }}
+              style={{ background: 'var(--sb-gradient-accent)' }}
             >
               {isLoading ? <Loader className="animate-spin" size={18} /> : (<>Create Account<ArrowRight size={16} /></>)}
             </motion.button>
