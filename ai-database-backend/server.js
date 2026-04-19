@@ -465,6 +465,58 @@ app.get('/api/schemas', authenticateToken, async (req, res) => {
   }
 });
 
+// 8. ER Diagram Data (must be BEFORE /api/schemas/:id to avoid Express treating 'er-diagram' as :id)
+app.get('/api/schemas/er-diagram', authenticateToken, async (req, res) => {
+  const { project_id } = req.query;
+  try {
+    let query = 'SELECT id, table_name, columns FROM schemas WHERE user_id = $1';
+    let params = [req.user.id];
+    if (project_id && project_id !== 'null' && project_id !== 'undefined' && project_id !== '') {
+      query += ' AND project_id = $2';
+      params.push(parseInt(project_id, 10));
+    }
+    query += ' ORDER BY created_at ASC';
+    const result = await pool.query(query, params);
+    const schemas = result.rows;
+    if (schemas.length === 0) return res.json({ mermaid: '', schemas: [] });
+
+    let mermaid = 'erDiagram\n';
+    schemas.forEach(schema => {
+      if (!Array.isArray(schema.columns)) return;
+      
+      mermaid += `  ${schema.table_name} {\n`;
+      schema.columns.forEach(col => {
+        if (!col || !col.name) return;
+        const type = (col.data_type || 'VARCHAR').replace(/\(.*\)/, '').toLowerCase();
+        const pk = (col.constraints || []).includes('PRIMARY KEY') ? 'PK' : '';
+        const fk = col.name.endsWith('_id') && col.name !== 'id' ? 'FK' : '';
+        const label = pk || fk || '';
+        mermaid += `    ${type} ${col.name}${label ? ' ' + label : ''}\n`;
+      });
+      mermaid += `  }\n`;
+    });
+
+    schemas.forEach(schema => {
+      if (!Array.isArray(schema.columns)) return;
+      schema.columns.forEach(col => {
+        if (!col || !col.name) return;
+        if (col.name.endsWith('_id') && col.name !== 'id') {
+          const refTable = col.name.replace('_id', '') + 's';
+          const hasRef = schemas.find(s => s.table_name === refTable);
+          if (hasRef) {
+            mermaid += `  ${refTable} ||--o{ ${schema.table_name} : "has"\n`;
+          }
+        }
+      });
+    });
+
+    res.json({ mermaid, schemas: schemas.map(s => ({ id: s.id, table_name: s.table_name, columns: s.columns })) });
+  } catch (err) {
+    console.error('ER diagram error:', err.message);
+    res.status(500).json({ error: 'Failed to generate ER diagram' });
+  }
+});
+
 app.get('/api/schemas/:id', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
@@ -896,58 +948,6 @@ app.post('/api/templates/:id/apply', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Template apply error:', err.message);
     res.status(500).json({ error: 'Failed to apply template' });
-  }
-});
-
-// 8. ER Diagram Data (all user schemas as Mermaid syntax)
-app.get('/api/schemas/er-diagram', authenticateToken, async (req, res) => {
-  const { project_id } = req.query;
-  try {
-    let query = 'SELECT id, table_name, columns FROM schemas WHERE user_id = $1';
-    let params = [req.user.id];
-    if (project_id && project_id !== 'null' && project_id !== 'undefined' && project_id !== '') {
-      query += ' AND project_id = $2';
-      params.push(parseInt(project_id, 10));
-    }
-    query += ' ORDER BY created_at ASC';
-    const result = await pool.query(query, params);
-    const schemas = result.rows;
-    if (schemas.length === 0) return res.json({ mermaid: '', schemas: [] });
-
-    let mermaid = 'erDiagram\n';
-    schemas.forEach(schema => {
-      if (!Array.isArray(schema.columns)) return;
-      
-      mermaid += `  ${schema.table_name} {\n`;
-      schema.columns.forEach(col => {
-        if (!col || !col.name) return;
-        const type = (col.data_type || 'VARCHAR').replace(/\(.*\)/, '').toLowerCase();
-        const pk = (col.constraints || []).includes('PRIMARY KEY') ? 'PK' : '';
-        const fk = col.name.endsWith('_id') && col.name !== 'id' ? 'FK' : '';
-        const label = pk || fk || '';
-        mermaid += `    ${type} ${col.name}${label ? ' ' + label : ''}\n`;
-      });
-      mermaid += `  }\n`;
-    });
-
-    schemas.forEach(schema => {
-      if (!Array.isArray(schema.columns)) return;
-      schema.columns.forEach(col => {
-        if (!col || !col.name) return;
-        if (col.name.endsWith('_id') && col.name !== 'id') {
-          const refTable = col.name.replace('_id', '') + 's';
-          const hasRef = schemas.find(s => s.table_name === refTable);
-          if (hasRef) {
-            mermaid += `  ${refTable} ||--o{ ${schema.table_name} : "has"\n`;
-          }
-        }
-      });
-    });
-
-    res.json({ mermaid, schemas: schemas.map(s => ({ id: s.id, table_name: s.table_name, columns: s.columns })) });
-  } catch (err) {
-    console.error('ER diagram error:', err.message);
-    res.status(500).json({ error: 'Failed to generate ER diagram' });
   }
 });
 
