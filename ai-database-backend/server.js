@@ -452,9 +452,9 @@ app.get('/api/schemas', authenticateToken, async (req, res) => {
   try {
     let query = 'SELECT id, project_id, table_name, columns, prompt, ai_generated, created_at, updated_at FROM schemas WHERE user_id = $1';
     let params = [req.user.id];
-    if (project_id) {
+    if (project_id && project_id !== 'null' && project_id !== 'undefined' && project_id !== '') {
       query += ' AND project_id = $2';
-      params.push(project_id);
+      params.push(parseInt(project_id, 10));
     }
     query += ' ORDER BY created_at ASC';
     const result = await pool.query(query, params);
@@ -905,9 +905,9 @@ app.get('/api/schemas/er-diagram', authenticateToken, async (req, res) => {
   try {
     let query = 'SELECT id, table_name, columns FROM schemas WHERE user_id = $1';
     let params = [req.user.id];
-    if (project_id) {
+    if (project_id && project_id !== 'null' && project_id !== 'undefined' && project_id !== '') {
       query += ' AND project_id = $2';
-      params.push(project_id);
+      params.push(parseInt(project_id, 10));
     }
     query += ' ORDER BY created_at ASC';
     const result = await pool.query(query, params);
