@@ -70,6 +70,14 @@ html, body {
   height: 100%;
 }
 
+/* Allow scrolling on mobile */
+@media (max-width: 767px) {
+  html, body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--sb-bg-primary);
@@ -291,4 +299,49 @@ button {
 /* Glowing border animation */
 .glow-border {
   animation: border-glow 3s ease-in-out infinite;
+}
+
+/* ============================
+   MOBILE RESPONSIVENESS
+   ============================ */
+
+@media (max-width: 767px) {
+  /* Glass cards — less padding & smaller radius on mobile */
+  .glass-card {
+    border-radius: 16px;
+    box-shadow: var(--sb-shadow-sm);
+  }
+
+  /* Disable 3D hover effects on touch devices */
+  .glass-card-hover:hover {
+    transform: none;
+  }
+
+  /* Gradient border — smaller radius */
+  .gradient-border {
+    border-radius: 12px;
+  }
+
+  /* Toast notifications — full width on mobile */
+  .toast-notification {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  /* Disable heavy blur on mobile for performance */
+  .noise-overlay::after {
+    display: none;
+  }
+
+  /* Scrollbar — thinner on mobile */
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass-card {
+    border-radius: 12px;
+  }
 }

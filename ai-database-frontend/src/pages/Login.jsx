@@ -84,29 +84,29 @@ const LoginForm = () => {
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-        className="relative z-10 w-full max-w-md mx-4"
+        className="relative z-10 w-full max-w-md mx-4 px-1"
       >
         {/* Logo + Title */}
         <motion.div 
-          className="text-center mb-8"
+          className="text-center mb-6 md:mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <motion.div 
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-2xl mb-4"
+            className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-2xl shadow-2xl mb-4"
             style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626, #e87a1e)', boxShadow: '0 0 40px rgba(212,160,23,0.3), 0 8px 32px rgba(0,0,0,0.4)' }}
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <Flame size={30} className="text-white" />
+            <Flame size={26} className="text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold text-white mb-1">Welcome back</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Welcome back</h1>
           <p className="text-[var(--sb-text-muted)] text-sm">Sign in to your StrucBot account</p>
         </motion.div>
 
         {/* Card */}
-        <div className="glass-card p-8 shadow-2xl">
+        <div className="glass-card p-6 md:p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Error */}
             {error && (

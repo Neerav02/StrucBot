@@ -110,11 +110,11 @@ const ERDiagram = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-6xl mx-auto p-8 space-y-6">
+      <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-4 md:space-y-6">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
           <div>
-            <h1 className="text-2xl font-bold text-white">ER Diagram</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white">ER Diagram</h1>
             <p className="text-sm text-[var(--sb-text-muted)] mt-1">Visual entity-relationship diagram of your schemas</p>
           </div>
           <div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ const ERDiagram = () => {
 
         {/* Stats */}
         {schemas.length > 0 && (
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3 md:gap-4">
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
               <Table2 size={14} className="text-amber-400" />
               <span className="text-xs font-medium text-amber-300">{schemas.length} tables</span>
@@ -176,7 +176,7 @@ const ERDiagram = () => {
 
         {/* Diagram */}
         {!isLoading && svgContent && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 overflow-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-3 md:p-6 overflow-auto">
             <div
               ref={diagramRef}
               className="w-full flex justify-center"

@@ -32,7 +32,7 @@ const Toast = ({ message, type, onClear }) => {
   }, [onClear]);
   return (
     <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-      className={`fixed bottom-5 right-5 flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-medium shadow-2xl z-50 backdrop-blur-xl border ${
+      className={`fixed bottom-5 left-4 right-4 md:left-auto md:right-5 md:w-auto flex items-center gap-3 px-4 py-3 md:px-5 md:py-3.5 rounded-2xl text-sm font-medium shadow-2xl z-50 backdrop-blur-xl border ${
         type === 'success' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-red-500/15 border-red-500/30 text-red-300'
       }`}
     >
@@ -145,17 +145,17 @@ const Templates = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-5xl mx-auto p-8 space-y-6">
+      <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-4 md:space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-white">Schema Templates</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">Schema Templates</h1>
           <p className="text-sm text-[var(--sb-text-muted)] mt-1">
             Start with a pre-built schema and customize it for your needs
           </p>
         </motion.div>
 
         {/* Category filter */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {categories.map(cat => (
             <button
               key={cat}

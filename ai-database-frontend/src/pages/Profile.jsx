@@ -75,10 +75,10 @@ const Profile = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-3xl mx-auto p-8 space-y-6">
+      <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-4 md:space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-white">Profile</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">Profile</h1>
           <p className="text-sm text-[var(--sb-text-muted)] mt-1">Manage your account information</p>
         </motion.div>
 
@@ -87,14 +87,14 @@ const Profile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card p-6"
+          className="glass-card p-4 md:p-6"
         >
           <form onSubmit={handleUpdate}>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
               <div className="flex items-center gap-4">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 via-purple-500 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-500 via-purple-500 to-cyan-400 flex items-center justify-center text-xl md:text-2xl font-bold text-white shadow-lg">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-400 border-2 border-[var(--sb-bg-card)] flex items-center justify-center">
@@ -102,7 +102,7 @@ const Profile = () => {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">{user.username}</h2>
+                  <h2 className="text-lg md:text-xl font-bold text-white">{user.username}</h2>
                   <p className="text-sm text-[var(--sb-text-muted)]">{user.email}</p>
                   <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold uppercase tracking-wider text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                     <Shield size={10} />
@@ -189,7 +189,7 @@ const Profile = () => {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
           <StatCard icon={Database} label="Schemas Created" value={schemaCount} color="bg-amber-500/15 text-amber-400" />
           <StatCard icon={Shield} label="Account Type" value={user.role === 'admin' ? 'Admin' : 'Free'} color="bg-cyan-500/15 text-amber-400/80" />
           <StatCard icon={Calendar} label="Member Since" value="Today" color="bg-purple-500/15 text-purple-400" />

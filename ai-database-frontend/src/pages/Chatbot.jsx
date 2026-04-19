@@ -19,7 +19,7 @@ const Toast = ({ message, type, onClear }) => {
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-      className={`fixed bottom-5 right-5 flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-medium shadow-2xl z-50 backdrop-blur-xl border ${
+      className={`fixed bottom-5 left-4 right-4 md:left-auto md:right-5 md:w-auto flex items-center gap-3 px-4 py-3 md:px-5 md:py-3.5 rounded-2xl text-sm font-medium shadow-2xl z-50 backdrop-blur-xl border ${
         type === 'success'
           ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
           : 'bg-red-500/15 border-red-500/30 text-red-300'
@@ -78,7 +78,7 @@ const SchemaCard = ({ schema, onDelete, schemaId }) => {
     <div className="w-full text-left space-y-3">
       <p className="text-sm text-[var(--sb-text-secondary)]">Here's your schema:</p>
 
-      <div className="bg-[var(--sb-bg-primary)]/60 border border-[var(--sb-border)] rounded-xl overflow-hidden">
+      <div className="bg-[var(--sb-bg-primary)]/60 border border-[var(--sb-border)] rounded-xl overflow-hidden overflow-x-auto">
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--sb-border)] bg-amber-500/5">
           <div className="flex items-center gap-2">
             <Database size={14} className="text-amber-400" />
@@ -96,7 +96,7 @@ const SchemaCard = ({ schema, onDelete, schemaId }) => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="flex items-center justify-between px-4 py-2 text-xs font-mono hover:bg-white/[0.02] transition-colors"
+              className="flex items-center justify-between px-3 py-2 md:px-4 text-[10px] md:text-xs font-mono hover:bg-white/[0.02] transition-colors"
             >
               <div className="flex items-center gap-2">
                 <span className="text-[var(--sb-text-primary)]">{col.name}</span>
@@ -129,7 +129,7 @@ const SchemaCard = ({ schema, onDelete, schemaId }) => {
         )}
       </AnimatePresence>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button onClick={handleViewSQL} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 transition-all">
           <Code size={14} /> {showSQL ? 'Hide SQL' : 'View SQL'}
         </button>
@@ -159,7 +159,7 @@ const ChatMessage = ({ message, onDelete }) => {
           <Bot size={16} className="text-white" />
         </div>
       )}
-      <div className={`max-w-[75%]`}>
+      <div className={`max-w-[90%] sm:max-w-[80%] md:max-w-[75%]`}>
         <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
           isUser
             ? 'bg-gradient-to-r from-amber-700/90 to-red-700/80 text-white rounded-br-md shadow-lg shadow-amber-600/20'
@@ -197,12 +197,12 @@ const ChatInput = ({ onSend, isLoading }) => {
   ];
 
   return (
-    <div className="p-4 border-t border-[var(--sb-border)] bg-[var(--sb-bg-secondary)]/80 backdrop-blur-xl">
+    <div className="p-3 md:p-4 border-t border-[var(--sb-border)] bg-[var(--sb-bg-secondary)]/80 backdrop-blur-xl">
       {!input && !isLoading && (
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+        <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
           {suggestions.map((s, i) => (
             <button key={i} onClick={() => setInput(s)}
-              className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-white/5 hover:bg-amber-500/10 text-[var(--sb-text-muted)] hover:text-amber-300 border border-[var(--sb-border)] hover:border-amber-500/30 transition-all"
+              className="flex-shrink-0 text-[10px] md:text-[11px] px-2.5 md:px-3 py-1.5 rounded-full bg-white/5 hover:bg-amber-500/10 text-[var(--sb-text-muted)] hover:text-amber-300 border border-[var(--sb-border)] hover:border-amber-500/30 transition-all"
             >{s}</button>
           ))}
         </div>
@@ -213,7 +213,7 @@ const ChatInput = ({ onSend, isLoading }) => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Describe your database schema..."
-          className="w-full bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl py-3.5 pl-4 pr-14 text-sm text-white placeholder-[var(--sb-text-muted)] focus:outline-none transition-all"
+          className="w-full bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl py-3 md:py-3.5 pl-4 pr-14 text-sm text-white placeholder-[var(--sb-text-muted)] focus:outline-none transition-all"
           disabled={isLoading}
         />
         <button onClick={handleSend} disabled={isLoading || !input.trim()} id="chat-send"
@@ -354,18 +354,18 @@ const Chatbot = () => {
   return (
     <div className="h-full flex flex-col relative">
       {/* Header — no "Powered by" branding */}
-      <div className="px-6 py-3.5 border-b border-[var(--sb-border)] flex items-center justify-between bg-[var(--sb-bg-secondary)]/60 backdrop-blur-xl">
+      <div className="px-4 py-3 md:px-6 md:py-3.5 border-b border-[var(--sb-border)] flex items-center justify-between bg-[var(--sb-bg-secondary)]/60 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
           <h2 className="text-sm font-semibold text-white">Schema Chat</h2>
         </div>
-        <div className="flex items-center gap-2 text-[10px] text-[var(--sb-text-muted)]">
+        <div className="flex items-center gap-2 text-[10px] text-[var(--sb-text-muted)] hidden sm:flex">
           <span>AI-Powered Schema Generation</span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 px-6 py-4 overflow-y-auto space-y-5" onScroll={handleScroll}>
+      <div className="flex-1 px-3 py-3 md:px-6 md:py-4 overflow-y-auto space-y-4 md:space-y-5" onScroll={handleScroll}>
         {messages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} onDelete={handleDelete} />
         ))}

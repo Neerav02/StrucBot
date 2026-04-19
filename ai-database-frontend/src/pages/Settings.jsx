@@ -59,10 +59,10 @@ const Settings = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-3xl mx-auto p-8 space-y-6">
+      <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-4 md:space-y-6">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-white">Settings</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-white">Settings</h1>
           <p className="text-sm text-[var(--sb-text-muted)] mt-1">Customize your StrucBot experience</p>
         </motion.div>
 
@@ -120,7 +120,7 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 ml-14">
+            <div className="grid grid-cols-3 gap-2 md:gap-3 ml-0 md:ml-14">
               {themes.map(t => (
                 <button
                   key={t.value}

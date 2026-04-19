@@ -34,7 +34,7 @@ const Toast = ({ message, type, onClear }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-      className={`fixed bottom-5 right-5 flex items-center gap-3 px-5 py-3.5 rounded-2xl text-sm font-medium shadow-2xl z-50 backdrop-blur-xl border ${
+      className={`fixed bottom-5 left-4 right-4 md:left-auto md:right-5 md:w-auto flex items-center gap-3 px-4 py-3 md:px-5 md:py-3.5 rounded-2xl text-sm font-medium shadow-2xl z-50 backdrop-blur-xl border ${
         type === 'success' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-red-500/15 border-red-500/30 text-red-300'
       }`}
     >
@@ -63,11 +63,11 @@ const ColumnRow = ({ column, index, onChange, onRemove, isFirst }) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 10, height: 0 }}
       transition={{ duration: 0.2 }}
-      className="group border border-[var(--sb-border)] rounded-xl p-4 hover:border-[var(--sb-border-hover)] transition-all bg-[var(--sb-bg-primary)]/40"
+      className="group border border-[var(--sb-border)] rounded-xl p-3 md:p-4 hover:border-[var(--sb-border-hover)] transition-all bg-[var(--sb-bg-primary)]/40"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
         {/* Drag handle */}
-        <div className="text-[var(--sb-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
+        <div className="text-[var(--sb-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hidden sm:block">
           <GripVertical size={14} />
         </div>
 
@@ -110,7 +110,7 @@ const ColumnRow = ({ column, index, onChange, onRemove, isFirst }) => {
         {!isFirst && (
           <button
             onClick={() => onRemove(index)}
-            className="p-1.5 rounded-lg text-[var(--sb-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+            className="p-1.5 rounded-lg text-[var(--sb-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all sm:opacity-0 sm:group-hover:opacity-100"
           >
             <Trash2 size={14} />
           </button>
@@ -270,7 +270,7 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+      className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 py-3 md:px-5 md:py-4 cursor-pointer hover:bg-white/[0.02] transition-colors gap-3 sm:gap-0"
         onClick={() => !isEditing && setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
@@ -295,7 +295,7 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           {isEditing ? (
             <>
               <button onClick={(e) => { e.stopPropagation(); handleSave(); }}
@@ -525,11 +525,11 @@ const SchemaEditor = () => {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-4xl mx-auto p-8 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-4 md:space-y-6">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
           <div>
-            <h1 className="text-2xl font-bold text-white">Schema Editor</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white">Schema Editor</h1>
             <p className="text-sm text-[var(--sb-text-muted)] mt-1">Edit, modify, and manage your database schemas</p>
           </div>
           <button
