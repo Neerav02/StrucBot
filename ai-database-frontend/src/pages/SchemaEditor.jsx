@@ -6,6 +6,7 @@ import {
   GripVertical, RefreshCw, Download, FileCode
 } from 'lucide-react';
 import api from '../services/api';
+import { useProjectStore } from '../stores/projectStore';
 
 // SQL Data Type options
 const DATA_TYPES = [
@@ -172,6 +173,10 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
   const [showExport, setShowExport] = useState(false);
   const [exportCode, setExportCode] = useState('');
   const [exportFormat, setExportFormat] = useState('');
+  const [showMockData, setShowMockData] = useState(false);
+  const [mockDataContent, setMockDataContent] = useState('');
+  const [mockDataFormat, setMockDataFormat] = useState('sql');
+  const [isGeneratingMockData, setIsGeneratingMockData] = useState(false);
 
   const handleColumnChange = (index, updatedColumn) => {
     const newColumns = [...editData.columns];
@@ -233,6 +238,22 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
       setShowSQL(false);
     } catch (err) {
       console.error('Export failed:', err);
+    }
+  };
+
+  const handleGenerateMockData = async (format = 'sql') => {
+    setIsGeneratingMockData(true);
+    setMockDataFormat(format);
+    try {
+      const res = await api.get(`/schemas/${schema.id}/mock-data?format=${format}`);
+      setMockDataContent(res.data.data);
+      setShowMockData(true);
+      setShowSQL(false);
+      setShowExport(false);
+    } catch (err) {
+      console.error('Mock data failed:', err);
+    } finally {
+      setIsGeneratingMockData(false);
     }
   };
 
@@ -310,6 +331,13 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
               >
                 <FileCode size={12} /> Export
               </button>
+              <button disabled={isGeneratingMockData} onClick={(e) => { e.stopPropagation(); showMockData ? setShowMockData(false) : handleGenerateMockData('sql'); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                  showMockData ? 'bg-sky-500/15 border-sky-500/30 text-sky-300' : 'bg-white/5 hover:bg-white/10 text-[var(--sb-text-secondary)] border-[var(--sb-border)]'
+                }`}
+              >
+                {isGeneratingMockData ? <Loader size={12} className="animate-spin" /> : <Database size={12} />} Data
+              </button>
               <button onClick={(e) => { e.stopPropagation(); onDelete(schema.id); }}
                 className="p-1.5 rounded-lg text-[var(--sb-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all"
               >
@@ -371,6 +399,39 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
         )}
       </AnimatePresence>
 
+      {/* Mock Data Output */}
+      <AnimatePresence>
+        {showMockData && !isEditing && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="mx-5 mb-4 bg-[var(--sb-bg-primary)] border border-[var(--sb-border)] rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--sb-border)]">
+                <div className="flex gap-1">
+                  {['sql', 'json'].map(f => (
+                    <button key={f} onClick={(e) => { e.stopPropagation(); handleGenerateMockData(f); }}
+                      disabled={isGeneratingMockData}
+                      className={`text-[10px] px-2.5 py-1 rounded-md font-semibold uppercase tracking-wider transition-all ${
+                        mockDataFormat === f ? 'bg-sky-500/15 text-sky-300' : 'text-[var(--sb-text-muted)] hover:text-white'
+                      }`}
+                    >{f}</button>
+                  ))}
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(mockDataContent); }} className="flex items-center gap-1 text-[10px] text-[var(--sb-text-muted)] hover:text-white transition-colors">
+                  <Copy size={10} /> Copy
+                </button>
+              </div>
+              <div className="relative">
+                {isGeneratingMockData && (
+                  <div className="absolute inset-0 bg-[var(--sb-bg-primary)]/80 backdrop-blur-sm flex items-center justify-center z-10">
+                    <Loader size={20} className="text-sky-400 animate-spin" />
+                  </div>
+                )}
+                <pre className="px-4 py-3 text-xs font-mono text-sky-300 overflow-x-auto whitespace-pre min-h-[100px]">{mockDataContent}</pre>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Expanded columns */}
       <AnimatePresence>
         {isExpanded && (
@@ -427,6 +488,7 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
 
 // ---- MAIN SCHEMA EDITOR PAGE ----
 const SchemaEditor = () => {
+  const { activeProject } = useProjectStore();
   const [schemas, setSchemas] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState({ text: '', type: 'success' });
@@ -434,7 +496,8 @@ const SchemaEditor = () => {
   const loadSchemas = async () => {
     setIsLoading(true);
     try {
-      const res = await api.get('/schemas');
+      const url = activeProject ? `/schemas?project_id=${activeProject.id}` : '/schemas';
+      const res = await api.get(url);
       setSchemas(res.data);
     } catch (err) {
       console.error('Failed to load schemas:', err);
@@ -443,7 +506,7 @@ const SchemaEditor = () => {
     }
   };
 
-  useEffect(() => { loadSchemas(); }, []);
+  useEffect(() => { loadSchemas(); }, [activeProject]);
 
   const handleUpdate = (updatedSchema) => {
     setSchemas(prev => prev.map(s => s.id === updatedSchema.id ? updatedSchema : s));

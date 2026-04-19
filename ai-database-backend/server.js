@@ -8,6 +8,7 @@ import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import pool, { initDatabase, seedAdminUser } from './db/index.js';
 
 // --- INITIAL SETUP ---
 dotenv.config();
@@ -68,54 +69,47 @@ const aiLimiter = rateLimit({
   message: { error: 'Too many AI requests. Please wait a moment.' },
 });
 
-// --- DEMO MODE IN-MEMORY STORAGE ---
-const db = {
-  users: [],
-  schemas: {},
-  chatHistory: {},
-};
-
-// Pre-create admin user
-const salt = bcrypt.genSaltSync(10);
-const adminPasswordHash = bcrypt.hashSync('admin123', salt);
-db.users.push({
-  id: 1,
-  username: 'admin',
-  email: 'admin@strucbot.com',
-  password_hash: adminPasswordHash,
-  role: 'admin',
-  created_at: new Date().toISOString(),
-});
-db.schemas[1] = [];
-db.chatHistory[1] = [];
+// --- DATABASE INITIALIZATION (PostgreSQL) ---
+// Tables are auto-created on startup via initDatabase()
+// Admin user is auto-seeded via seedAdminUser()
 
 // --- AUTH MIDDLEWARE ---
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Access token required' });
+  if (!token) return res.status(401).json({ error: 'Access denied. Token required.' });
 
-  jwt.verify(token, jwtSecret, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid or expired token' });
-    const dbUser = db.users.find(u => u.id === user.userId);
-    if (!dbUser) return res.status(403).json({ error: 'User not found' });
-    req.user = { id: dbUser.id, username: dbUser.username, role: dbUser.role, email: dbUser.email };
-    next();
+  jwt.verify(token, jwtSecret, async (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid or expired token.' });
+    try {
+      const result = await pool.query('SELECT id, username, email, role FROM users WHERE id = $1', [user.userId]);
+      if (result.rows.length === 0) return res.status(403).json({ error: 'User not found' });
+      req.user = result.rows[0];
+      next();
+    } catch (dbErr) {
+      console.error('Auth DB error:', dbErr.message);
+      return res.status(500).json({ error: 'Authentication error' });
+    }
   });
 };
 
 // --- API ROUTES ---
 
 // Health Check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    mode: 'demo',
-    ai: 'Groq (Llama 3.3 70B)',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    users: db.users.length,
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    const userCount = await pool.query('SELECT COUNT(*) FROM users');
+    res.json({
+      status: 'ok',
+      mode: 'PostgreSQL',
+      ai: 'Groq (Llama 3.3 70B)',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      users: parseInt(userCount.rows[0].count),
+    });
+  } catch {
+    res.json({ status: 'ok', mode: 'PostgreSQL', ai: 'Groq (Llama 3.3 70B)', uptime: process.uptime() });
+  }
 });
 
 // 1. Authentication
@@ -125,33 +119,47 @@ app.post('/api/auth/register', async (req, res) => {
   if (typeof username !== 'string' || username.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
   if (typeof password !== 'string' || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email format' });
-  if (db.users.some(u => u.username === username || u.email === email)) return res.status(400).json({ error: 'Username or email already exists' });
 
-  const passwordHash = await bcrypt.hash(password, 10);
-  const newUser = { id: Date.now(), username, email, password_hash: passwordHash, role: 'user', created_at: new Date().toISOString() };
-  db.users.push(newUser);
-  db.schemas[newUser.id] = [];
-  db.chatHistory[newUser.id] = [];
-  console.log(`✅ New user registered: ${username}`);
-  res.status(201).json({ message: 'User created successfully' });
+  try {
+    const existing = await pool.query('SELECT id FROM users WHERE username = $1 OR email = $2', [username, email]);
+    if (existing.rows.length > 0) return res.status(400).json({ error: 'Username or email already exists' });
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    await pool.query(
+      'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4)',
+      [username, email, passwordHash, 'user']
+    );
+    console.log(`✅ New user registered: ${username}`);
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (err) {
+    console.error('Register error:', err.message);
+    res.status(500).json({ error: 'Registration failed' });
+  }
 });
 
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
-  const user = db.users.find(u => u.username === username || u.email === username);
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-  const isValid = await bcrypt.compare(password, user.password_hash);
-  if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE username = $1 OR email = $1', [username]);
+    const user = result.rows[0];
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-  const token = jwt.sign({ userId: user.id, username: user.username }, jwtSecret, { expiresIn: '24h' });
-  console.log(`✅ User logged in: ${user.username}`);
-  res.json({
-    message: 'Login successful',
-    token,
-    user: { id: user.id, username: user.username, email: user.email, role: user.role }
-  });
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ userId: user.id, username: user.username }, jwtSecret, { expiresIn: '24h' });
+    console.log(`✅ User logged in: ${user.username}`);
+    res.json({
+      message: 'Login successful',
+      token,
+      user: { id: user.id, username: user.username, email: user.email, role: user.role }
+    });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    res.status(500).json({ error: 'Login failed' });
+  }
 });
 
 // 2. User Profile
@@ -159,25 +167,66 @@ app.get('/api/auth/profile', authenticateToken, (req, res) => {
   res.json(req.user);
 });
 
-app.put('/api/auth/profile', authenticateToken, (req, res) => {
+app.put('/api/auth/profile', authenticateToken, async (req, res) => {
   const { username, email } = req.body;
-  const userIndex = db.users.findIndex(u => u.id === req.user.id);
-  if (userIndex === -1) return res.status(404).json({ error: 'User not found' });
 
-  if (username) {
-    if (typeof username !== 'string' || username.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
-    if (db.users.some(u => u.username === username && u.id !== req.user.id)) return res.status(400).json({ error: 'Username already taken' });
-    db.users[userIndex].username = username;
-  }
-  if (email) {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email format' });
-    if (db.users.some(u => u.email === email && u.id !== req.user.id)) return res.status(400).json({ error: 'Email already taken' });
-    db.users[userIndex].email = email;
-  }
+  try {
+    if (username) {
+      if (typeof username !== 'string' || username.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
+      const taken = await pool.query('SELECT id FROM users WHERE username = $1 AND id != $2', [username, req.user.id]);
+      if (taken.rows.length > 0) return res.status(400).json({ error: 'Username already taken' });
+    }
+    if (email) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email format' });
+      const taken = await pool.query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, req.user.id]);
+      if (taken.rows.length > 0) return res.status(400).json({ error: 'Email already taken' });
+    }
 
-  const updatedUser = db.users[userIndex];
-  console.log(`✅ Profile updated: ${updatedUser.username}`);
-  res.json({ message: 'Profile updated successfully', user: { id: updatedUser.id, username: updatedUser.username, email: updatedUser.email, role: updatedUser.role } });
+    const updates = [];
+    const values = [];
+    let paramIdx = 1;
+    if (username) { updates.push(`username = $${paramIdx++}`); values.push(username); }
+    if (email) { updates.push(`email = $${paramIdx++}`); values.push(email); }
+
+    if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
+
+    values.push(req.user.id);
+    const result = await pool.query(
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIdx} RETURNING id, username, email, role`,
+      values
+    );
+    const updatedUser = result.rows[0];
+    console.log(`✅ Profile updated: ${updatedUser.username}`);
+    res.json({ message: 'Profile updated successfully', user: updatedUser });
+  } catch (err) {
+    console.error('Profile update error:', err.message);
+    res.status(500).json({ error: 'Profile update failed' });
+  }
+});
+
+// 2.5 Projects
+app.get('/api/projects', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM projects WHERE user_id = $1 ORDER BY created_at ASC', [req.user.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch projects' });
+  }
+});
+
+app.post('/api/projects', authenticateToken, async (req, res) => {
+  const { name, description } = req.body;
+  if (!name) return res.status(400).json({ error: 'Project name is required' });
+  try {
+    const result = await pool.query(
+      'INSERT INTO projects (user_id, name, description) VALUES ($1, $2, $3) RETURNING *',
+      [req.user.id, name, description || '']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'Project name already exists' });
+    res.status(500).json({ error: 'Failed to create project' });
+  }
 });
 
 // 3. AI Schema Generation (Groq / Llama 3.3 70B)
@@ -350,10 +399,18 @@ RULES:
     usedFallback = true;
   }
 
-  const newSchema = { id: uuidv4(), ...schema, created_at: new Date().toISOString(), prompt, ai_generated: !usedFallback };
+  const schemaId = uuidv4();
+  const projectId = req.body.project_id || null;
+  try {
+    await pool.query(
+      'INSERT INTO schemas (id, user_id, project_id, table_name, columns, prompt, ai_generated) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [schemaId, userId, projectId, schema.table_name, JSON.stringify(schema.columns), prompt, !usedFallback]
+    );
+  } catch (dbErr) {
+    console.error('DB save error:', dbErr.message);
+  }
 
-  if (!db.schemas[userId]) db.schemas[userId] = [];
-  db.schemas[userId].push(newSchema);
+  const newSchema = { id: schemaId, ...schema, created_at: new Date().toISOString(), prompt, ai_generated: !usedFallback };
   console.log(`✅ ${usedFallback ? '(Fallback)' : '(AI)'} Schema "${newSchema.table_name}" for ${req.user.username}`);
   res.json({ type: 'schema', content: newSchema });
 });
@@ -381,61 +438,102 @@ app.post('/api/generate-schema', authenticateToken, aiLimiter, async (req, res) 
     if (!schema.table_name || !Array.isArray(schema.columns)) { schema = generateFallbackSchema(prompt); usedFallback = true; }
   } catch { schema = generateFallbackSchema(prompt); usedFallback = true; }
 
-  const newSchema = { id: uuidv4(), ...schema, created_at: new Date().toISOString(), prompt, ai_generated: !usedFallback };
-  if (!db.schemas[userId]) db.schemas[userId] = [];
-  db.schemas[userId].push(newSchema);
+  const schemaId = uuidv4();
+  const projectId = req.body.project_id || null;
+  try {
+    await pool.query(
+      'INSERT INTO schemas (id, user_id, project_id, table_name, columns, prompt, ai_generated) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [schemaId, userId, projectId, schema.table_name, JSON.stringify(schema.columns), prompt, !usedFallback]
+    );
+  } catch (dbErr) {
+    console.error('DB save error:', dbErr.message);
+  }
+
+  const newSchema = { id: schemaId, ...schema, created_at: new Date().toISOString(), prompt, ai_generated: !usedFallback };
   res.json(newSchema);
 });
 
 // 4. Schema Management
-app.get('/api/schemas', authenticateToken, (req, res) => {
-  res.json(db.schemas[req.user.id] || []);
-});
-
-app.get('/api/schemas/:id', authenticateToken, (req, res) => {
-  const schema = (db.schemas[req.user.id] || []).find(s => s.id === req.params.id);
-  if (!schema) return res.status(404).json({ error: 'Schema not found' });
-  res.json(schema);
-});
-
-app.put('/api/schemas/:id', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  const schemaId = req.params.id;
-  const { table_name, columns } = req.body;
-
-  if (!db.schemas[userId]) return res.status(404).json({ error: 'Schema not found' });
-  const schemaIndex = db.schemas[userId].findIndex(s => s.id === schemaId);
-  if (schemaIndex === -1) return res.status(404).json({ error: 'Schema not found' });
-
-  // Update schema fields
-  if (table_name) db.schemas[userId][schemaIndex].table_name = table_name;
-  if (columns && Array.isArray(columns)) db.schemas[userId][schemaIndex].columns = columns;
-  db.schemas[userId][schemaIndex].updated_at = new Date().toISOString();
-
-  console.log(`✏️ Schema "${schemaId}" updated by ${req.user.username}`);
-  res.json(db.schemas[userId][schemaIndex]);
-});
-
-app.delete('/api/schemas/:id', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  const schemaId = req.params.id;
-  if (!db.schemas[userId]) return res.status(404).json({ error: 'Schema not found' });
-  const initialLength = db.schemas[userId].length;
-  db.schemas[userId] = db.schemas[userId].filter(s => s.id !== schemaId);
-
-  if (db.schemas[userId].length < initialLength) {
-    console.log(`🗑️ Schema ${schemaId} deleted by ${req.user.username}`);
-    res.json({ message: 'Schema deleted successfully' });
-  } else {
-    res.status(404).json({ error: 'Schema not found' });
+app.get('/api/schemas', authenticateToken, async (req, res) => {
+  const { project_id } = req.query;
+  try {
+    let query = 'SELECT id, project_id, table_name, columns, prompt, ai_generated, created_at, updated_at FROM schemas WHERE user_id = $1';
+    let params = [req.user.id];
+    if (project_id) {
+      query += ' AND project_id = $2';
+      params.push(project_id);
+    }
+    query += ' ORDER BY created_at ASC';
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get schemas error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch schemas' });
   }
 });
 
+app.get('/api/schemas/:id', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, table_name, columns, prompt, ai_generated, created_at, updated_at FROM schemas WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Schema not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Get schema error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch schema' });
+  }
+});
+
+app.put('/api/schemas/:id', authenticateToken, async (req, res) => {
+  const { table_name, columns } = req.body;
+  try {
+    const updates = [];
+    const values = [];
+    let idx = 1;
+    if (table_name) { updates.push(`table_name = $${idx++}`); values.push(table_name); }
+    if (columns && Array.isArray(columns)) { updates.push(`columns = $${idx++}`); values.push(JSON.stringify(columns)); }
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    values.push(req.params.id, req.user.id);
+    const result = await pool.query(
+      `UPDATE schemas SET ${updates.join(', ')} WHERE id = $${idx++} AND user_id = $${idx} RETURNING *`,
+      values
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Schema not found' });
+
+    console.log(`✏️ Schema "${req.params.id}" updated by ${req.user.username}`);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Update schema error:', err.message);
+    res.status(500).json({ error: 'Failed to update schema' });
+  }
+});
+
+app.delete('/api/schemas/:id', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM schemas WHERE id = $1 AND user_id = $2 RETURNING id',
+      [req.params.id, req.user.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Schema not found' });
+    console.log(`🗑️ Schema ${req.params.id} deleted by ${req.user.username}`);
+    res.json({ message: 'Schema deleted successfully' });
+  } catch (err) {
+    console.error('Delete schema error:', err.message);
+    res.status(500).json({ error: 'Failed to delete schema' });
+  }
+});
+
+
 // 5. SQL Export (Multi-dialect)
-app.get('/api/schemas/:id/sql', authenticateToken, (req, res) => {
+app.get('/api/schemas/:id/sql', authenticateToken, async (req, res) => {
   const { dialect } = req.query;
-  const schema = (db.schemas[req.user.id] || []).find(s => s.id === req.params.id);
-  if (!schema) return res.status(404).json({ error: 'Schema not found' });
+  try {
+    const result = await pool.query('SELECT * FROM schemas WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Schema not found' });
+    const schema = result.rows[0];
 
   const sqlDialect = dialect || 'postgresql';
   const columns = schema.columns.map(col => {
@@ -464,13 +562,19 @@ app.get('/api/schemas/:id/sql', authenticateToken, (req, res) => {
   }
 
   res.json({ sql, dialect: sqlDialect, table_name: schema.table_name });
+  } catch (err) {
+    console.error('SQL export error:', err.message);
+    res.status(500).json({ error: 'Failed to generate SQL' });
+  }
 });
 
 // 6. ORM Export
-app.get('/api/schemas/:id/export', authenticateToken, (req, res) => {
+app.get('/api/schemas/:id/export', authenticateToken, async (req, res) => {
   const { format } = req.query;
-  const schema = (db.schemas[req.user.id] || []).find(s => s.id === req.params.id);
-  if (!schema) return res.status(404).json({ error: 'Schema not found' });
+  try {
+    const result = await pool.query('SELECT * FROM schemas WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Schema not found' });
+    const schema = result.rows[0];
 
   const typeMap = {
     prisma: {
@@ -571,6 +675,56 @@ app.get('/api/schemas/:id/export', authenticateToken, (req, res) => {
   }
 
   res.status(400).json({ error: 'Supported formats: prisma, typeorm' });
+  } catch (err) {
+    console.error('ORM export error:', err.message);
+    res.status(500).json({ error: 'Failed to generate ORM export' });
+  }
+});
+
+// 6.5 Mock Data Generation
+app.get('/api/schemas/:id/mock-data', authenticateToken, aiLimiter, async (req, res) => {
+  const { format = 'sql' } = req.query; // sql | json
+  try {
+    const result = await pool.query('SELECT * FROM schemas WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Schema not found' });
+    const schema = result.rows[0];
+
+    const promptText = `You are a data engineer. Generate EXACTLY 10 rows of highly realistic mock data for a table named "${schema.table_name}".
+The schema has these columns:
+${JSON.stringify(schema.columns)}
+
+Format required: ${format === 'json' ? 'JSON Array of objects' : 'Standard SQL INSERT statements'}
+
+RULES:
+1. ONLY return the raw ${format.toUpperCase()} data. No intro, no explanations, no markdown blocks like \`\`\`sql. Just the raw string!
+2. The data MUST perfectly match the data types and sizes in the schema.
+3. Produce extremely realistic, non-gibberish data. E.g. coherent addresses, standard prices, valid emails.
+4. For foreign keys (e.g., user_id), pick random integers between 1 and 20.
+5. If SQL format: Output a SINGLE or MULTIPLE \`INSERT INTO ${schema.table_name}\` statements valid for PostgreSQL/MySQL.
+6. If JSON format: Output a strictly valid JSON array [] and nothing else.`;
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'system', content: promptText }],
+      temperature: 0.5,
+      max_tokens: 1500,
+    });
+
+    let mockData = completion.choices[0].message.content.replace(/```(?:sql|json|)?\n?|\n?```/gi, '').trim();
+
+    if (format === 'json') {
+      try {
+        JSON.parse(mockData);
+      } catch (e) {
+        console.warn('AI JSON was slightly malformed, returning raw text anyway');
+      }
+    }
+
+    res.json({ data: mockData, format, table_name: schema.table_name });
+  } catch (err) {
+    console.error('Mock data generation error:', err.message);
+    res.status(500).json({ error: 'Failed to generate mock data' });
+  }
 });
 
 // 7. Schema Templates
@@ -715,7 +869,7 @@ app.get('/api/templates', authenticateToken, (req, res) => {
 });
 
 // Apply a template (creates a new schema from a template)
-app.post('/api/templates/:id/apply', authenticateToken, (req, res) => {
+app.post('/api/templates/:id/apply', authenticateToken, async (req, res) => {
   const templates = [
     // Inline references — the GET endpoint above holds the full data
     // We'll just fetch the same template definitions
@@ -735,62 +889,93 @@ app.post('/api/templates/:id/apply', authenticateToken, (req, res) => {
   if (!template) return res.status(404).json({ error: 'Template not found' });
 
   const userId = req.user.id;
-  const newSchema = {
-    id: uuidv4(),
-    ...template,
-    created_at: new Date().toISOString(),
-    prompt: `Template: ${req.params.id}`,
-    ai_generated: false,
-  };
+  const schemaId = uuidv4();
+  const projectId = req.body.project_id || null;
 
-  if (!db.schemas[userId]) db.schemas[userId] = [];
-  db.schemas[userId].push(newSchema);
-  console.log(`📋 Template "${req.params.id}" applied for ${req.user.username}`);
-  res.json(newSchema);
+  try {
+    await pool.query(
+      'INSERT INTO schemas (id, user_id, project_id, table_name, columns, prompt, ai_generated) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [schemaId, userId, projectId, template.table_name, JSON.stringify(template.columns), `Template: ${req.params.id}`, false]
+    );
+    const newSchema = { id: schemaId, ...template, created_at: new Date().toISOString(), prompt: `Template: ${req.params.id}`, ai_generated: false };
+    console.log(`📋 Template "${req.params.id}" applied for ${req.user.username}`);
+    res.json(newSchema);
+  } catch (err) {
+    console.error('Template apply error:', err.message);
+    res.status(500).json({ error: 'Failed to apply template' });
+  }
 });
 
 // 8. ER Diagram Data (all user schemas as Mermaid syntax)
-app.get('/api/schemas/er-diagram', authenticateToken, (req, res) => {
-  const schemas = db.schemas[req.user.id] || [];
-  if (schemas.length === 0) return res.json({ mermaid: '', schemas: [] });
+app.get('/api/schemas/er-diagram', authenticateToken, async (req, res) => {
+  const { project_id } = req.query;
+  try {
+    let query = 'SELECT id, table_name, columns FROM schemas WHERE user_id = $1';
+    let params = [req.user.id];
+    if (project_id) {
+      query += ' AND project_id = $2';
+      params.push(project_id);
+    }
+    query += ' ORDER BY created_at ASC';
+    const result = await pool.query(query, params);
+    const schemas = result.rows;
+    if (schemas.length === 0) return res.json({ mermaid: '', schemas: [] });
 
-  let mermaid = 'erDiagram\n';
-  schemas.forEach(schema => {
-    schema.columns.forEach(col => {
-      const type = col.data_type.replace(/\(.*\)/, '').toLowerCase();
-      const pk = (col.constraints || []).includes('PRIMARY KEY') ? 'PK' : '';
-      const fk = col.name.endsWith('_id') && col.name !== 'id' ? 'FK' : '';
-      const label = pk || fk || '';
-      mermaid += `  ${schema.table_name} {\n    ${type} ${col.name}${label ? ' ' + label : ''}\n  }\n`;
+    let mermaid = 'erDiagram\n';
+    schemas.forEach(schema => {
+      schema.columns.forEach(col => {
+        const type = col.data_type.replace(/\(.*\)/, '').toLowerCase();
+        const pk = (col.constraints || []).includes('PRIMARY KEY') ? 'PK' : '';
+        const fk = col.name.endsWith('_id') && col.name !== 'id' ? 'FK' : '';
+        const label = pk || fk || '';
+        mermaid += `  ${schema.table_name} {\n    ${type} ${col.name}${label ? ' ' + label : ''}\n  }\n`;
+      });
     });
-  });
 
-  // Detect relationships via _id columns
-  schemas.forEach(schema => {
-    schema.columns.forEach(col => {
-      if (col.name.endsWith('_id') && col.name !== 'id') {
-        const refTable = col.name.replace('_id', '') + 's';
-        const hasRef = schemas.find(s => s.table_name === refTable);
-        if (hasRef) {
-          mermaid += `  ${refTable} ||--o{ ${schema.table_name} : "has"\n`;
+    schemas.forEach(schema => {
+      schema.columns.forEach(col => {
+        if (col.name.endsWith('_id') && col.name !== 'id') {
+          const refTable = col.name.replace('_id', '') + 's';
+          const hasRef = schemas.find(s => s.table_name === refTable);
+          if (hasRef) {
+            mermaid += `  ${refTable} ||--o{ ${schema.table_name} : "has"\n`;
+          }
         }
-      }
+      });
     });
-  });
 
-  res.json({ mermaid, schemas: schemas.map(s => ({ id: s.id, table_name: s.table_name, columns: s.columns })) });
+    res.json({ mermaid, schemas: schemas.map(s => ({ id: s.id, table_name: s.table_name, columns: s.columns })) });
+  } catch (err) {
+    console.error('ER diagram error:', err.message);
+    res.status(500).json({ error: 'Failed to generate ER diagram' });
+  }
 });
 
 // --- SERVER STARTUP ---
-server.listen(port, () => {
-  console.log('');
-  console.log('╔══════════════════════════════════════╗');
-  console.log('║     🤖 StrucBot Backend Server        ║');
-  console.log('╠══════════════════════════════════════╣');
-  console.log(`║  🚀 Running on http://localhost:${port}  ║`);
-  console.log('║  📊 Mode: Demo (In-Memory)           ║');
-  console.log('║  🔐 Auth: JWT                        ║');
-  console.log('║  🧠 AI: Groq (Llama 3.3 70B)        ║');
-  console.log('╚══════════════════════════════════════╝');
-  console.log('');
-});
+async function startServer() {
+  try {
+    // Initialize database tables
+    await initDatabase();
+    // Seed admin user
+    await seedAdminUser(bcrypt);
+
+    server.listen(port, () => {
+      console.log('');
+      console.log('╔══════════════════════════════════════╗');
+      console.log('║     🤖 StrucBot Backend Server        ║');
+      console.log('╠══════════════════════════════════════╣');
+      console.log(`║  🚀 Running on http://localhost:${port}  ║`);
+      console.log('║  📊 Mode: PostgreSQL                 ║');
+      console.log('║  🔐 Auth: JWT                        ║');
+      console.log('║  🧠 AI: Groq (Llama 3.3 70B)        ║');
+      console.log('╚══════════════════════════════════════╝');
+      console.log('');
+    });
+  } catch (err) {
+    console.error('❌ Failed to start server:', err.message);
+    console.error('   Make sure PostgreSQL is running and DATABASE_URL is correct in .env');
+    process.exit(1);
+  }
+}
+
+startServer();

@@ -6,6 +6,7 @@ import {
   CheckCircle, AlertTriangle, Database, ArrowRight, Layers
 } from 'lucide-react';
 import api from '../services/api';
+import { useProjectStore } from '../stores/projectStore';
 
 const CATEGORY_ICONS = {
   'E-Commerce': ShoppingCart,
@@ -108,6 +109,7 @@ const Templates = () => {
   const [notification, setNotification] = useState({ text: '', type: 'success' });
   const [activeCategory, setActiveCategory] = useState('All');
   const navigate = useNavigate();
+  const { activeProject } = useProjectStore();
 
   useEffect(() => {
     const load = async () => {
@@ -126,7 +128,9 @@ const Templates = () => {
   const handleApply = async (templateId) => {
     setApplyingId(templateId);
     try {
-      const res = await api.post(`/templates/${templateId}/apply`);
+      const payload = {};
+      if (activeProject) payload.project_id = activeProject.id;
+      const res = await api.post(`/templates/${templateId}/apply`, payload);
       setNotification({ text: `Template "${res.data.table_name}" applied! Redirecting to editor...`, type: 'success' });
       setTimeout(() => navigate('/editor'), 1500);
     } catch (err) {

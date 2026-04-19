@@ -1,16 +1,48 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { useProjectStore } from '../stores/projectStore';
+import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Pencil, GitBranch, Layers, User, Settings, LogOut, ChevronLeft, ChevronRight, Flame } from 'lucide-react';
+import { Database, Pencil, GitBranch, Layers, User, Settings, LogOut, ChevronLeft, ChevronRight, Flame, Plus, ChevronDown } from 'lucide-react';
 
 const Layout = () => {
   const { user, logout } = useAuthStore();
+  const { projects, setProjects, activeProject, setActiveProject, addProject } = useProjectStore();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
+  React.useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await api.get('/projects');
+        setProjects(res.data);
+        if (res.data.length > 0 && !activeProject) {
+          setActiveProject(res.data[0]);
+        }
+      } catch (err) {
+        console.error('Failed to load projects', err);
+      }
+    };
+    if (user) fetchProjects();
+  }, [user, setProjects, activeProject, setActiveProject]);
+
+  const handleCreateProject = async () => {
+    const name = window.prompt('Enter new workspace name:');
+    if (!name || !name.trim()) return;
+    try {
+      const res = await api.post('/projects', { name: name.trim() });
+      addProject(res.data);
+      setActiveProject(res.data);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to create workspace');
+    }
+  };
+
   const handleLogout = () => {
     logout();
+    setProjects([]);
+    setActiveProject(null);
     navigate('/login');
   };
 
@@ -52,6 +84,32 @@ const Layout = () => {
               </motion.div>
             )}
           </AnimatePresence>
+        </div>
+
+        {/* Workspace / Projects Selector */}
+        <div className="px-4 py-3 border-b border-[var(--sb-border)] relative">
+          <div className={`flex items-center justify-between text-[10px] font-bold text-[var(--sb-text-muted)] tracking-widest uppercase mb-1.5 ${collapsed ? 'justify-center mx-auto' : ''}`}>
+            {!collapsed && <span>Workspace</span>}
+            <button onClick={handleCreateProject} title="New Workspace" className="hover:text-amber-400 transition-colors p-0.5">
+              <Plus size={12} />
+            </button>
+          </div>
+          {!collapsed && (
+            <div className="relative">
+              <select
+                value={activeProject?.id || ''}
+                onChange={(e) => {
+                  const proj = projects.find(p => p.id === parseInt(e.target.value));
+                  if (proj) setActiveProject(proj);
+                }}
+                className="w-full bg-[var(--sb-bg-elevated)] border border-[var(--sb-border)] rounded-lg text-xs text-white font-medium px-2.5 py-1.5 focus:outline-none focus:border-amber-500/50 cursor-pointer appearance-none shadow-inner"
+              >
+                {projects.length === 0 && <option value="">Default Workspace</option>}
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <ChevronDown size={12} className="absolute right-2.5 top-[8px] text-[var(--sb-text-muted)] pointer-events-none" />
+            </div>
+          )}
         </div>
 
         {/* Nav Items */}

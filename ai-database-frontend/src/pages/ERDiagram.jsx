@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GitBranch, RefreshCw, Loader, ZoomIn, ZoomOut, Download, Table2 } from 'lucide-react';
 import mermaid from 'mermaid';
 import api from '../services/api';
+import { useProjectStore } from '../stores/projectStore';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -33,15 +34,17 @@ const ERDiagram = () => {
   const [svgContent, setSvgContent] = useState('');
   const [error, setError] = useState('');
   const diagramRef = useRef(null);
+  const { activeProject } = useProjectStore();
 
   const loadDiagram = useCallback(async () => {
     setIsLoading(true);
     setError('');
     try {
-      const res = await api.get('/schemas');
-      setSchemas(res.data);
+      const url = activeProject ? `/schemas/er-diagram?project_id=${activeProject.id}` : '/schemas/er-diagram';
+      const res = await api.get(url);
+      setSchemas(res.data.schemas);
       
-      if (res.data.length === 0) {
+      if (res.data.schemas.length === 0) {
         setMermaidCode('');
         setSvgContent('');
         setIsLoading(false);
@@ -50,7 +53,7 @@ const ERDiagram = () => {
 
       // Build Mermaid ER code
       let code = 'erDiagram\n';
-      res.data.forEach(schema => {
+      res.data.schemas.forEach(schema => {
         code += `  ${schema.table_name} {\n`;
         schema.columns.forEach(col => {
           const type = col.data_type.replace(/\(.*\)/, '').toLowerCase();
@@ -63,11 +66,11 @@ const ERDiagram = () => {
       });
 
       // Detect relationships
-      res.data.forEach(schema => {
+      res.data.schemas.forEach(schema => {
         schema.columns.forEach(col => {
           if (col.name.endsWith('_id') && col.name !== 'id') {
             const refTable = col.name.replace('_id', '') + 's';
-            if (res.data.find(s => s.table_name === refTable)) {
+            if (res.data.schemas.find(s => s.table_name === refTable)) {
               code += `  ${refTable} ||--o{ ${schema.table_name} : "has"\n`;
             }
           }
@@ -90,7 +93,7 @@ const ERDiagram = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeProject]);
 
   useEffect(() => { loadDiagram(); }, [loadDiagram]);
 

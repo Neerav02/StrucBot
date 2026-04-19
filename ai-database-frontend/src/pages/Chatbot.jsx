@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Trash2, CheckCircle, AlertTriangle, Copy, Check, Code, Database, ArrowDown } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
+import { useProjectStore } from '../stores/projectStore';
 
 // ---- Toast notification ----
 const Toast = ({ message, type, onClear }) => {
@@ -259,11 +260,14 @@ const Chatbot = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const { activeProject } = useProjectStore();
+
   // Load existing schemas with their prompts
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        const response = await api.get('/schemas');
+        const url = activeProject ? `/schemas?project_id=${activeProject.id}` : '/schemas';
+        const response = await api.get(url);
         const historyMessages = [];
         response.data.forEach(schema => {
           // Add the user's original prompt as a message
@@ -288,14 +292,16 @@ const Chatbot = () => {
       }
     };
     loadHistory();
-  }, []);
+  }, [activeProject]);
 
   const handleSend = async (prompt) => {
     const userMessage = { sender: 'user', type: 'text', content: prompt, id: uuidv4() };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     try {
-      const aiResponse = await api.post('/chat', { prompt });
+      const payload = { prompt };
+      if (activeProject) payload.project_id = activeProject.id;
+      const aiResponse = await api.post('/chat', payload);
       const { type, content } = aiResponse.data;
 
       if (type === 'schema') {
