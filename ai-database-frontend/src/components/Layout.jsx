@@ -4,7 +4,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useProjectStore } from '../stores/projectStore';
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Pencil, GitBranch, Layers, User, Settings, LogOut, ChevronLeft, ChevronRight, Flame, Plus, ChevronDown } from 'lucide-react';
+import { Database, Pencil, GitBranch, Layers, User, Settings, LogOut, ChevronLeft, ChevronRight, Flame, Plus, ChevronDown, LogIn } from 'lucide-react';
 
 const Layout = () => {
   const { user, logout } = useAuthStore();
@@ -28,10 +28,6 @@ const Layout = () => {
   }, [user, setProjects, activeProject, setActiveProject]);
 
   const handleCreateProject = async () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     const name = window.prompt('Enter new workspace name:');
     if (!name || !name.trim()) return;
     try {
@@ -51,13 +47,15 @@ const Layout = () => {
   };
 
   const navItems = [
-    { to: '/chatbot', icon: Database, label: 'Schema Chat' },
-    { to: '/editor', icon: Pencil, label: 'Schema Editor' },
-    { to: '/diagram', icon: GitBranch, label: 'ER Diagram' },
-    { to: '/templates', icon: Layers, label: 'Templates' },
-    { to: '/profile', icon: User, label: 'Profile' },
-    { to: '/settings', icon: Settings, label: 'Settings' },
+    { to: '/chatbot', icon: Database, label: 'Schema Chat', public: true },
+    { to: '/editor', icon: Pencil, label: 'Schema Editor', public: false },
+    { to: '/diagram', icon: GitBranch, label: 'ER Diagram', public: false },
+    { to: '/templates', icon: Layers, label: 'Templates', public: false },
+    { to: '/profile', icon: User, label: 'Profile', public: false },
+    { to: '/settings', icon: Settings, label: 'Settings', public: false },
   ];
+
+  const visibleNavItems = user ? navItems : navItems.filter(item => item.public);
 
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-mesh noise-overlay">
@@ -90,7 +88,8 @@ const Layout = () => {
           </AnimatePresence>
         </div>
 
-        {/* Workspace / Projects Selector */}
+        {/* Workspace / Projects Selector — only when logged in */}
+        {user && (
         <div className="px-4 py-3 border-b border-[var(--sb-border)] relative">
           <div className={`flex items-center justify-between text-[10px] font-bold text-[var(--sb-text-muted)] tracking-widest uppercase mb-1.5 ${collapsed ? 'justify-center mx-auto' : ''}`}>
             {!collapsed && <span>Workspace</span>}
@@ -115,10 +114,11 @@ const Layout = () => {
             </div>
           )}
         </div>
+        )}
 
         {/* Nav Items */}
         <nav className="flex-1 p-3 space-y-1 mt-2">
-          {navItems.map((item, idx) => (
+          {visibleNavItems.map((item, idx) => (
             <NavLink
               key={item.label}
               to={item.to}
@@ -176,37 +176,70 @@ const Layout = () => {
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
                   style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)' }}
                 >
-                  {user.username?.charAt(0).toUpperCase()}
+                  {user?.username?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <AnimatePresence>
                   {!collapsed && (
                     <motion.div
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-sm font-medium text-white truncate">{user.username}</p>
-                      <p className="text-[10px] text-[var(--sb-text-muted)] truncate">{user.email}</p>
+                      <p className="text-sm font-medium text-white truncate">{user?.username || 'User'}</p>
+                      <p className="text-[10px] text-[var(--sb-text-muted)] truncate">{user?.email || ''}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
+              
+              {/* Logout */}
               <button
                 onClick={handleLogout}
                 className={`flex items-center gap-3 px-3 py-2 rounded-xl w-full text-left text-[var(--sb-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all text-sm ${collapsed ? 'justify-center' : ''}`}
               >
                 <LogOut size={18} className="flex-shrink-0" />
                 <AnimatePresence>
-                  {!collapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>Logout</motion.span>}
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      Logout
+                    </motion.span>
+                  )}
                 </AnimatePresence>
               </button>
             </>
           ) : (
-            <div className={`space-y-1 ${collapsed ? 'flex flex-col items-center' : ''}`}>
-              <button onClick={() => navigate('/login')} className={`w-full flex justify-center items-center py-2 px-3 rounded-lg text-sm font-semibold transition-all hover:bg-white/5 border-2 border-transparent ${collapsed ? 'w-10 h-10 p-0' : ''}`}>
-                {collapsed ? <User size={16} /> : 'Log in'}
+            <div className="space-y-2">
+              <button
+                onClick={() => navigate('/login')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl w-full text-left text-sm font-medium text-white transition-all hover:opacity-90 ${collapsed ? 'justify-center' : ''}`}
+                style={{ background: 'var(--sb-gradient-accent)' }}
+              >
+                <LogIn size={18} className="flex-shrink-0" />
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      Sign in
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
-              <button onClick={() => navigate('/register')} className={`w-full flex justify-center items-center py-2 px-3 rounded-lg text-sm font-semibold transition-all text-white ${collapsed ? 'w-10 h-10 p-0' : ''}`} style={{ background: 'var(--sb-gradient-accent)' }}>
-                {collapsed ? <Plus size={16} /> : 'Sign up'}
+              <button
+                onClick={() => navigate('/register')}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl w-full text-left text-sm font-medium text-[var(--sb-text-secondary)] hover:text-white hover:bg-white/5 border border-[var(--sb-border)] transition-all ${collapsed ? 'justify-center' : ''}`}
+              >
+                <User size={18} className="flex-shrink-0" />
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      Create account
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
             </div>
           )}

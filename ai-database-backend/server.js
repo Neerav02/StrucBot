@@ -118,19 +118,12 @@ app.post('/api/auth/register', async (req, res) => {
     if (existing.rows.length > 0) return res.status(400).json({ error: 'Username or email already exists' });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const result = await pool.query(
-      'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
+    await pool.query(
+      'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4)',
       [username, email, passwordHash, 'user']
     );
-    const userId = result.rows[0].id;
-    const token = jwt.sign({ id: userId, username, role: 'user' }, jwtSecret, { expiresIn: '7d' });
-
     console.log(`✅ New user registered: ${username}`);
-    res.status(201).json({ 
-      message: 'User created successfully',
-      user: { id: userId, username, email },
-      token
-    });
+    res.status(201).json({ message: 'User created successfully' });
   } catch (err) {
     console.error('Register error:', err.message);
     res.status(500).json({ error: 'Registration failed' });
@@ -925,40 +918,27 @@ app.get('/api/schemas/er-diagram', authenticateToken, async (req, res) => {
     schemas.forEach(schema => {
       if (!Array.isArray(schema.columns)) return;
       
-      const tableNameStr = String(schema.table_name || 'table').replace(/\s+/g, '_');
-      mermaid += `  ${tableNameStr} {\n`;
-      
+      mermaid += `  ${schema.table_name} {\n`;
       schema.columns.forEach(col => {
         if (!col || !col.name) return;
-        const colNameStr = String(col.name).replace(/\s+/g, '_');
-        const type = String(col.data_type || 'VARCHAR').replace(/\(.*\)/, '').toLowerCase().replace(/\s+/g, '_');
-        
-        let pk = '';
-        if (Array.isArray(col.constraints)) {
-          pk = col.constraints.includes('PRIMARY KEY') ? 'PK' : '';
-        } else if (col.constraints) {
-          pk = String(col.constraints).includes('PRIMARY KEY') ? 'PK' : '';
-        }
-        
-        const fk = colNameStr.endsWith('_id') && colNameStr !== 'id' ? 'FK' : '';
+        const type = (col.data_type || 'VARCHAR').replace(/\(.*\)/, '').toLowerCase();
+        const pk = (col.constraints || []).includes('PRIMARY KEY') ? 'PK' : '';
+        const fk = col.name.endsWith('_id') && col.name !== 'id' ? 'FK' : '';
         const label = pk || fk || '';
-        mermaid += `    ${type} ${colNameStr}${label ? ' ' + label : ''}\n`;
+        mermaid += `    ${type} ${col.name}${label ? ' ' + label : ''}\n`;
       });
       mermaid += `  }\n`;
     });
 
     schemas.forEach(schema => {
       if (!Array.isArray(schema.columns)) return;
-      const tableNameStr = String(schema.table_name || 'table').replace(/\s+/g, '_');
-      
       schema.columns.forEach(col => {
         if (!col || !col.name) return;
-        const colNameStr = String(col.name);
-        if (colNameStr.endsWith('_id') && colNameStr !== 'id') {
-          const refTable = colNameStr.replace('_id', '') + 's';
-          const hasRef = schemas.find(s => String(s.table_name) === refTable);
+        if (col.name.endsWith('_id') && col.name !== 'id') {
+          const refTable = col.name.replace('_id', '') + 's';
+          const hasRef = schemas.find(s => s.table_name === refTable);
           if (hasRef) {
-            mermaid += `  ${refTable} ||--o{ ${tableNameStr} : "has"\n`;
+            mermaid += `  ${refTable} ||--o{ ${schema.table_name} : "has"\n`;
           }
         }
       });

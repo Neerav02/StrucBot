@@ -7,8 +7,6 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { useProjectStore } from '../stores/projectStore';
-import { useAuthStore } from '../stores/authStore';
-import { useNavigate } from 'react-router-dom';
 
 // SQL Data Type options
 const DATA_TYPES = [
@@ -491,14 +489,11 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
 // ---- MAIN SCHEMA EDITOR PAGE ----
 const SchemaEditor = () => {
   const { activeProject } = useProjectStore();
-  const { token } = useAuthStore();
-  const navigate = useNavigate();
   const [schemas, setSchemas] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState({ text: '', type: 'success' });
 
   const loadSchemas = async () => {
-    if (!token) return;
     setIsLoading(true);
     try {
       const url = activeProject ? `/schemas?project_id=${activeProject.id}` : '/schemas';
@@ -511,7 +506,7 @@ const SchemaEditor = () => {
     }
   };
 
-  useEffect(() => { loadSchemas(); }, [activeProject, token]);
+  useEffect(() => { loadSchemas(); }, [activeProject]);
 
   const handleUpdate = (updatedSchema) => {
     setSchemas(prev => prev.map(s => s.id === updatedSchema.id ? updatedSchema : s));
@@ -552,25 +547,8 @@ const SchemaEditor = () => {
           </div>
         )}
 
-        {/* Empty state auth */}
-        {!token ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card p-12 text-center border border-[var(--sb-border)]"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-              <Database size={28} className="text-amber-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Login Required</h3>
-            <p className="text-sm text-[var(--sb-text-muted)] max-w-sm mx-auto mb-6">
-              You must sign in to view and manage semantic database schemas.
-            </p>
-            <button onClick={() => navigate('/login')} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
-              Sign In
-            </button>
-          </motion.div>
-        ) : !isLoading && schemas.length === 0 ? (
+        {/* Empty state */}
+        {!isLoading && schemas.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -584,7 +562,7 @@ const SchemaEditor = () => {
               Head to <span className="text-amber-400">Schema Chat</span> and describe a database to generate your first schema!
             </p>
           </motion.div>
-        ) : null}
+        )}
 
         {/* Schema list */}
         <div className="space-y-4">

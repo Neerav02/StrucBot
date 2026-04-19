@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, User, Trash2, CheckCircle, AlertTriangle, Copy, Check, Code, Database, ArrowDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Send, Bot, User, Trash2, CheckCircle, AlertTriangle, Copy, Check, Code, Database, ArrowDown, LogIn } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import api from '../services/api';
 import { useProjectStore } from '../stores/projectStore';
 import { useAuthStore } from '../stores/authStore';
-import { useNavigate } from 'react-router-dom';
 
 // ---- Toast notification ----
 const Toast = ({ message, type, onClear }) => {
@@ -265,11 +265,12 @@ const Chatbot = () => {
   const { activeProject } = useProjectStore();
   const { token } = useAuthStore();
   const navigate = useNavigate();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  // Load existing schemas with their prompts
+  // Load existing schemas with their prompts (only when logged in)
   useEffect(() => {
+    if (!token) return;
     const loadHistory = async () => {
-      if (!token) return; // public dashboard, do not fetch history
       try {
         const url = activeProject ? `/schemas?project_id=${activeProject.id}` : '/schemas';
         const response = await api.get(url);
@@ -301,7 +302,7 @@ const Chatbot = () => {
 
   const handleSend = async (prompt) => {
     if (!token) {
-      navigate('/login');
+      setShowLoginPrompt(true);
       return;
     }
     const userMessage = { sender: 'user', type: 'text', content: prompt, id: uuidv4() };
@@ -406,6 +407,53 @@ const Chatbot = () => {
       <AnimatePresence>
         {notification.text && (
           <Toast message={notification.text} type={notification.type} onClear={() => setNotification({ text: '', type: 'success' })} />
+        )}
+      </AnimatePresence>
+
+      {/* Login Prompt Modal */}
+      <AnimatePresence>
+        {showLoginPrompt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowLoginPrompt(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="glass-card p-8 max-w-sm mx-4 text-center shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)', boxShadow: '0 0 30px rgba(212,160,23,0.3)' }}
+              >
+                <LogIn size={24} className="text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Sign in to continue</h3>
+              <p className="text-sm text-[var(--sb-text-muted)] mb-6 leading-relaxed">
+                Create a free account to generate AI-powered database schemas, export SQL, and more.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                  style={{ background: 'var(--sb-gradient-accent)' }}
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="flex-1 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-white/10 border border-[var(--sb-border)] hover:bg-white/15 transition-all"
+                >
+                  Create account
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

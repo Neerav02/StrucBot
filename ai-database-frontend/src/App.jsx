@@ -4,6 +4,7 @@ import { useAuthStore } from './stores/authStore';
 
 // Import Pages and Components
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import LoginForm from './pages/Login';
 import RegisterForm from './pages/Register';
 import Chatbot from './pages/Chatbot';
@@ -19,26 +20,27 @@ function App() {
   return (
     <Routes>
       {/* Public routes for login and register */}
-      <Route path="/login" element={<LoginForm />} />
-      <Route path="/register" element={<RegisterForm />} />
+      <Route path="/login" element={token ? <Navigate to="/chatbot" replace /> : <LoginForm />} />
+      <Route path="/register" element={token ? <Navigate to="/chatbot" replace /> : <RegisterForm />} />
       
-      {/* Dashboard routes are now accessible to guests. Components will handle auth. */}
+      {/* Chatbot is publicly accessible (ChatGPT-style: view without login, prompt on action) */}
       <Route element={<Layout />}>
         <Route path="/chatbot" element={<Chatbot />} />
-        <Route path="/editor" element={<SchemaEditor />} />
-        <Route path="/diagram" element={<ERDiagram />} />
-        <Route path="/templates" element={<Templates />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
+      </Route>
+
+      {/* Protected routes — require login */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<Layout />}>
+          <Route path="/editor" element={<SchemaEditor />} />
+          <Route path="/diagram" element={<ERDiagram />} />
+          <Route path="/templates" element={<Templates />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
       </Route>
       
-      {/* This is the default route handler.
-          If the user is logged in (has a token), it redirects them to the /chatbot page.
-          If they are not logged in, it redirects them to the /login page. */}
-      <Route 
-        path="*" 
-        element={<Navigate to={token ? "/chatbot" : "/login"} replace />} 
-      />
+      {/* Default: go to chatbot (public dashboard) */}
+      <Route path="*" element={<Navigate to="/chatbot" replace />} />
     </Routes>
   );
 }

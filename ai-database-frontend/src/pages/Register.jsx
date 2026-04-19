@@ -34,7 +34,6 @@ const RegisterForm = () => {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
@@ -59,15 +58,17 @@ const RegisterForm = () => {
     }
     setIsLoading(true);
     setError('');
-    setSuccess('');
 
     try {
-      const response = await api.post('/auth/register', formData);
-      setSuccess('Account created successfully!');
-      setTimeout(() => {
-        login(response.data.user, response.data.token);
-        navigate('/chatbot');
-      }, 1000);
+      // Register
+      await api.post('/auth/register', formData);
+      // Auto-login immediately after successful registration
+      const loginRes = await api.post('/auth/login', {
+        username: formData.username,
+        password: formData.password,
+      });
+      login(loginRes.data.user, loginRes.data.token);
+      navigate('/chatbot');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
@@ -95,8 +96,8 @@ const RegisterForm = () => {
           <motion.div
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-2xl mb-4"
             style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626, #e87a1e)', boxShadow: '0 0 40px rgba(212,160,23,0.3), 0 8px 32px rgba(0,0,0,0.4)' }}
-            animate={{ rotate: [0, 5, -5, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ rotate: [0, -5, 5, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           >
             <Flame size={30} className="text-white" />
           </motion.div>
@@ -111,11 +112,6 @@ const RegisterForm = () => {
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                 className="bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl text-sm text-center"
               >{error}</motion.div>
-            )}
-            {success && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl text-sm text-center flex items-center justify-center gap-2"
-              ><CheckCircle size={16} />{success}</motion.div>
             )}
 
             {/* Username */}

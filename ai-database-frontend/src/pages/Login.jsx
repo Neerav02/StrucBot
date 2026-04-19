@@ -58,7 +58,8 @@ const LoginForm = () => {
     try {
       const response = await api.post('/auth/login', formData);
       login(response.data.user, response.data.token);
-      navigate('/chatbot');
+      // Small delay to let zustand persist flush to localStorage
+      setTimeout(() => navigate('/chatbot'), 100);
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
     } finally {
