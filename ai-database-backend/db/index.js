@@ -67,12 +67,6 @@ export async function initDatabase() {
       );
     `);
 
-    try {
-      await client.query(`ALTER TABLE schemas ADD COLUMN project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE;`);
-    } catch (e) {
-      // Column already exists or other error, safe to ignore for IF NOT EXISTS
-    }
-
     // 3. Chat history table
     await client.query(`
       CREATE TABLE IF NOT EXISTS chat_history (
@@ -93,6 +87,14 @@ export async function initDatabase() {
 
     await client.query('COMMIT');
     console.log('✅ PostgreSQL tables initialized successfully');
+
+    // Run safe ALTER TABLE outside the transaction block to prevent transaction abortion on error
+    try {
+      await client.query(`ALTER TABLE schemas ADD COLUMN project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE;`);
+    } catch (e) {
+      // Column already exists or other error, safe to ignore
+    }
+
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('❌ Database initialization failed:', err.message);
