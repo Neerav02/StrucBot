@@ -8,7 +8,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci --only=production
 
 # Copy source code
-COPY server.js ./
+COPY . .
 
 # Expose port
 EXPOSE 4000
