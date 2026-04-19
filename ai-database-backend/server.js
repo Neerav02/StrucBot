@@ -39,15 +39,8 @@ const groq = new OpenAI({
 app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 
 // CORS: support multiple origins for production
-const allowedOrigins = frontendUrl.split(',').map(u => u.trim());
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,
   credentials: true,
 }));
 
