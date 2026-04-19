@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Pencil, GitBranch, Layers, User, Settings, LogOut, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Database, Pencil, GitBranch, Layers, User, Settings, LogOut, ChevronLeft, ChevronRight, Flame } from 'lucide-react';
 
 const Layout = () => {
   const { user, logout } = useAuthStore();
@@ -32,10 +32,12 @@ const Layout = () => {
         className="relative flex flex-col border-r border-[var(--sb-border)] bg-[var(--sb-bg-secondary)] z-10"
         style={{ minWidth: collapsed ? 72 : 260 }}
       >
-        {/* Logo */}
+        {/* Logo — Neural Ember Branding */}
         <div className="p-4 flex items-center gap-3 border-b border-[var(--sb-border)] h-[68px]">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <Sparkles size={20} className="text-white" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg"
+            style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)', boxShadow: '0 0 20px rgba(212,160,23,0.3)' }}
+          >
+            <Flame size={20} className="text-white" />
           </div>
           <AnimatePresence>
             {!collapsed && (
@@ -45,8 +47,8 @@ const Layout = () => {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <h1 className="text-lg font-bold text-white tracking-tight">StrucBot</h1>
-                <p className="text-[10px] text-[var(--sb-text-muted)] -mt-0.5 font-medium uppercase tracking-widest">AI Schema Engine</p>
+                <h1 className="text-lg font-bold tracking-tight gradient-text-gold">StrucBot</h1>
+                <p className="text-[10px] text-[var(--sb-text-muted)] -mt-0.5 font-medium uppercase tracking-widest">Neural Schema AI</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -61,7 +63,7 @@ const Layout = () => {
               className={({ isActive }) =>
                 `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium relative overflow-hidden ${
                   isActive
-                    ? 'bg-gradient-to-r from-indigo-600/20 to-indigo-600/5 text-white border border-indigo-500/30'
+                    ? 'bg-gradient-to-r from-amber-600/20 to-amber-600/5 text-white border border-amber-500/25'
                     : 'text-[var(--sb-text-secondary)] hover:text-white hover:bg-white/5'
                 }`
               }
@@ -72,11 +74,12 @@ const Layout = () => {
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-indigo-400"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
+                      style={{ background: 'linear-gradient(180deg, #d4a017, #dc2626)' }}
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <item.icon size={20} className={`flex-shrink-0 ${isActive ? 'text-indigo-400' : 'group-hover:text-indigo-300'}`} />
+                  <item.icon size={20} className={`flex-shrink-0 ${isActive ? 'text-amber-400' : 'group-hover:text-amber-300'}`} />
                   <AnimatePresence>
                     {!collapsed && (
                       <motion.span
@@ -98,16 +101,17 @@ const Layout = () => {
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-[var(--sb-bg-elevated)] border border-[var(--sb-border)] flex items-center justify-center text-[var(--sb-text-muted)] hover:text-white hover:border-indigo-500/50 transition-all z-20 shadow-md"
+          className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-[var(--sb-bg-elevated)] border border-[var(--sb-border)] flex items-center justify-center text-[var(--sb-text-muted)] hover:text-white hover:border-amber-500/50 transition-all z-20 shadow-md"
         >
           {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
         </button>
 
         {/* User section */}
         <div className="p-3 border-t border-[var(--sb-border)]">
-          {/* User info */}
           <div className={`flex items-center gap-3 px-3 py-2 mb-2 rounded-xl bg-white/[0.03] ${collapsed ? 'justify-center' : ''}`}>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)' }}
+            >
               {user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <AnimatePresence>
@@ -145,6 +149,10 @@ const Layout = () => {
           </button>
         </div>
       </motion.aside>
+
+      {/* Ember background orbs */}
+      <div className="ember-orb ember-orb-gold w-64 h-64 -top-20 -right-20" />
+      <div className="ember-orb ember-orb-crimson w-48 h-48 bottom-10 left-1/2" style={{ animationDelay: '2s' }} />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden relative z-[1]">

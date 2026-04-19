@@ -76,7 +76,7 @@ const ColumnRow = ({ column, index, onChange, onRemove, isFirst }) => {
             type="text"
             value={column.name}
             onChange={(e) => onChange(index, { ...column, name: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
-            className="w-full bg-transparent border-b border-[var(--sb-border)] focus:border-indigo-500/50 text-sm text-white font-mono py-1 px-0 focus:outline-none transition-colors"
+            className="w-full bg-transparent border-b border-[var(--sb-border)] focus:border-amber-500/50 text-sm text-white font-mono py-1 px-0 focus:outline-none transition-colors"
             placeholder="column_name"
           />
         </div>
@@ -86,7 +86,7 @@ const ColumnRow = ({ column, index, onChange, onRemove, isFirst }) => {
           <select
             value={column.data_type}
             onChange={(e) => onChange(index, { ...column, data_type: e.target.value })}
-            className="appearance-none bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-lg text-xs text-cyan-400 font-mono px-3 py-1.5 pr-8 focus:outline-none focus:border-indigo-500/50 cursor-pointer"
+            className="appearance-none bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-lg text-xs text-amber-400/80 font-mono px-3 py-1.5 pr-8 focus:outline-none focus:border-amber-500/50 cursor-pointer"
           >
             {DATA_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
@@ -98,7 +98,7 @@ const ColumnRow = ({ column, index, onChange, onRemove, isFirst }) => {
           onClick={() => setShowConstraints(!showConstraints)}
           className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
             (column.constraints || []).length > 0
-              ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-300'
+              ? 'border-amber-500/30 bg-amber-500/10 text-amber-300'
               : 'border-[var(--sb-border)] bg-white/5 text-[var(--sb-text-muted)] hover:text-white'
           }`}
         >
@@ -120,7 +120,7 @@ const ColumnRow = ({ column, index, onChange, onRemove, isFirst }) => {
       {(column.constraints || []).length > 0 && !showConstraints && (
         <div className="flex flex-wrap gap-1.5 mt-2 ml-7">
           {column.constraints.map((c, i) => (
-            <span key={i} className="text-[9px] bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-md font-medium border border-indigo-500/20">
+            <span key={i} className="text-[9px] bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-md font-medium border border-amber-500/20">
               {c}
             </span>
           ))}
@@ -144,7 +144,7 @@ const ColumnRow = ({ column, index, onChange, onRemove, isFirst }) => {
                   onClick={() => toggleConstraint(c)}
                   className={`text-[10px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
                     (column.constraints || []).includes(c)
-                      ? 'border-indigo-500/50 bg-indigo-500/15 text-indigo-300'
+                      ? 'border-amber-500/50 bg-amber-500/15 text-amber-300'
                       : 'border-[var(--sb-border)] bg-white/5 text-[var(--sb-text-muted)] hover:text-white hover:bg-white/10'
                   }`}
                 >
@@ -253,8 +253,8 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
         onClick={() => !isEditing && setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-            <Database size={18} className="text-indigo-400" />
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+            <Database size={18} className="text-amber-400" />
           </div>
           <div>
             {isEditing ? (
@@ -263,10 +263,10 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
                 value={editData.table_name}
                 onChange={(e) => setEditData({ ...editData, table_name: e.target.value.toLowerCase().replace(/\s+/g, '_') })}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-[var(--sb-bg-primary)] border border-[var(--sb-border)] rounded-lg text-sm text-indigo-300 font-mono px-3 py-1.5 focus:outline-none focus:border-indigo-500/50"
+                className="bg-[var(--sb-bg-primary)] border border-[var(--sb-border)] rounded-lg text-sm text-amber-300 font-mono px-3 py-1.5 focus:outline-none focus:border-amber-500/50"
               />
             ) : (
-              <h3 className="text-sm font-bold font-mono text-indigo-300">{schema.table_name}</h3>
+              <h3 className="text-sm font-bold font-mono text-amber-300">{schema.table_name}</h3>
             )}
             <p className="text-[10px] text-[var(--sb-text-muted)] mt-0.5">
               {schema.columns.length} columns · {schema.ai_generated !== false ? 'AI Generated' : 'Fallback'} · {new Date(schema.created_at).toLocaleDateString()}
@@ -292,13 +292,13 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
           ) : (
             <>
               <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); setIsExpanded(true); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/20 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 transition-all"
               >
                 <Edit3 size={12} /> Edit
               </button>
               <button onClick={(e) => { e.stopPropagation(); showSQL ? setShowSQL(false) : handleViewSQL(); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                  showSQL ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300' : 'bg-white/5 hover:bg-white/10 text-[var(--sb-text-secondary)] border-[var(--sb-border)]'
+                  showSQL ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-white/5 hover:bg-white/10 text-[var(--sb-text-secondary)] border-[var(--sb-border)]'
                 }`}
               >
                 <Code size={12} /> SQL
@@ -331,7 +331,7 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
                   {['postgresql', 'mysql', 'sqlite'].map(d => (
                     <button key={d} onClick={(e) => { e.stopPropagation(); handleViewSQL(d); }}
                       className={`text-[10px] px-2.5 py-1 rounded-md font-semibold uppercase tracking-wider transition-all ${
-                        sqlDialect === d ? 'bg-indigo-500/15 text-indigo-300' : 'text-[var(--sb-text-muted)] hover:text-white'
+                        sqlDialect === d ? 'bg-amber-500/15 text-amber-300' : 'text-[var(--sb-text-muted)] hover:text-white'
                       }`}
                     >{d}</button>
                   ))}
@@ -400,7 +400,7 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-cyan-400">{col.data_type}</span>
+                      <span className="text-amber-400/80">{col.data_type}</span>
                       {col.constraints?.filter(c => c !== 'PRIMARY KEY').map((c, i) => (
                         <span key={i} className="text-[8px] bg-white/5 text-[var(--sb-text-muted)] px-1.5 py-0.5 rounded font-sans">{c}</span>
                       ))}
@@ -412,7 +412,7 @@ const SchemaEditorCard = ({ schema, onUpdate, onDelete, onNotify }) => {
               {isEditing && (
                 <button
                   onClick={handleAddColumn}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-[var(--sb-border)] hover:border-indigo-500/30 text-[var(--sb-text-muted)] hover:text-indigo-300 transition-all text-xs font-medium"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-[var(--sb-border)] hover:border-amber-500/30 text-[var(--sb-text-muted)] hover:text-amber-300 transition-all text-xs font-medium"
                 >
                   <Plus size={14} /> Add Column
                 </button>
@@ -480,7 +480,7 @@ const SchemaEditor = () => {
         {/* Loading */}
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <Loader className="animate-spin text-indigo-400" size={24} />
+            <Loader className="animate-spin text-amber-400" size={24} />
           </div>
         )}
 
@@ -491,12 +491,12 @@ const SchemaEditor = () => {
             animate={{ opacity: 1, y: 0 }}
             className="glass-card p-12 text-center"
           >
-            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
-              <Database size={28} className="text-indigo-400" />
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+              <Database size={28} className="text-amber-400" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">No schemas yet</h3>
             <p className="text-sm text-[var(--sb-text-muted)] max-w-sm mx-auto">
-              Head to <span className="text-indigo-400">Schema Chat</span> and describe a database to generate your first schema!
+              Head to <span className="text-amber-400">Schema Chat</span> and describe a database to generate your first schema!
             </p>
           </motion.div>
         )}

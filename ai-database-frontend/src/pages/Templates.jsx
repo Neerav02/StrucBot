@@ -43,7 +43,7 @@ const Toast = ({ message, type, onClear }) => {
 
 const TemplateCard = ({ template, onApply, isApplying }) => {
   const Icon = CATEGORY_ICONS[template.category] || Database;
-  const colors = CATEGORY_COLORS[template.category] || { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', text: 'text-indigo-300' };
+  const colors = CATEGORY_COLORS[template.category] || { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-300' };
 
   return (
     <motion.div
@@ -71,7 +71,7 @@ const TemplateCard = ({ template, onApply, isApplying }) => {
           {template.schema.columns.slice(0, 5).map((col, i) => (
             <div key={i} className="flex items-center justify-between text-[10px] font-mono">
               <span className="text-[var(--sb-text-secondary)]">{col.name}</span>
-              <span className="text-cyan-400/60">{col.data_type}</span>
+              <span className="text-amber-400/80/60">{col.data_type}</span>
             </div>
           ))}
           {template.schema.columns.length > 5 && (
@@ -158,7 +158,7 @@ const Templates = () => {
               onClick={() => setActiveCategory(cat)}
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-medium transition-all border ${
                 activeCategory === cat
-                  ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300'
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
                   : 'bg-white/5 border-[var(--sb-border)] text-[var(--sb-text-muted)] hover:text-white hover:bg-white/10'
               }`}
             >
@@ -170,7 +170,7 @@ const Templates = () => {
         {/* Loading */}
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <Loader className="animate-spin text-indigo-400" size={24} />
+            <Loader className="animate-spin text-amber-400" size={24} />
           </div>
         )}
 

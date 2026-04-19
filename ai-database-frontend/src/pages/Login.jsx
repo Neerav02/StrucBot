@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Loader, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Flame, Loader, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import api from '../services/api';
 
@@ -14,7 +14,7 @@ const Particle = ({ delay, x, y, size }) => (
       top: `${y}%`,
       width: size,
       height: size,
-      background: `radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)`,
+      background: `radial-gradient(circle, rgba(212,160,23,0.25) 0%, transparent 70%)`,
     }}
     animate={{
       y: [-20, 20, -20],
@@ -75,7 +75,7 @@ const LoginForm = () => {
 
       {/* Grid overlay */}
       <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)`,
+        backgroundImage: `linear-gradient(rgba(212,160,23,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(212,160,23,0.4) 1px, transparent 1px)`,
         backgroundSize: '60px 60px',
       }} />
 
@@ -93,11 +93,12 @@ const LoginForm = () => {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <motion.div 
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 shadow-2xl mb-4"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-2xl mb-4"
+            style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626, #e87a1e)', boxShadow: '0 0 40px rgba(212,160,23,0.3), 0 8px 32px rgba(0,0,0,0.4)' }}
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <Sparkles size={30} className="text-white" />
+            <Flame size={30} className="text-white" />
           </motion.div>
           <h1 className="text-3xl font-bold text-white mb-1">Welcome back</h1>
           <p className="text-[var(--sb-text-muted)] text-sm">Sign in to your StrucBot account</p>
@@ -127,7 +128,7 @@ const LoginForm = () => {
                   id="login-username"
                   type="text"
                   required
-                  className="w-full px-4 py-3 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-indigo-500/50 transition-all text-sm"
+                  className="w-full px-4 py-3 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-amber-500/50 transition-all text-sm"
                   placeholder="Enter your username"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -145,7 +146,7 @@ const LoginForm = () => {
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full px-4 py-3 pr-12 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-indigo-500/50 transition-all text-sm"
+                  className="w-full px-4 py-3 pr-12 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-amber-500/50 transition-all text-sm"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -183,7 +184,7 @@ const LoginForm = () => {
             {/* Register link */}
             <p className="text-center text-sm text-[var(--sb-text-muted)]">
               Don't have an account?{' '}
-              <Link to="/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+              <Link to="/register" className="text-amber-400 hover:text-amber-300 font-medium transition-colors">
                 Create one
               </Link>
             </p>

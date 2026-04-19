@@ -76,10 +76,10 @@ const SchemaCard = ({ schema, onDelete, schemaId }) => {
       <p className="text-sm text-[var(--sb-text-secondary)]">Here's your schema:</p>
 
       <div className="bg-[var(--sb-bg-primary)]/60 border border-[var(--sb-border)] rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--sb-border)] bg-indigo-500/5">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--sb-border)] bg-amber-500/5">
           <div className="flex items-center gap-2">
-            <Database size={14} className="text-indigo-400" />
-            <span className="font-mono text-sm font-semibold text-indigo-300">{schema.table_name}</span>
+            <Database size={14} className="text-amber-400" />
+            <span className="font-mono text-sm font-semibold text-amber-300">{schema.table_name}</span>
           </div>
           <span className="text-[10px] text-[var(--sb-text-muted)] bg-white/5 px-2 py-0.5 rounded-full">
             {schema.columns.length} columns
@@ -102,7 +102,7 @@ const SchemaCard = ({ schema, onDelete, schemaId }) => {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-cyan-400">{col.data_type}</span>
+                <span className="text-amber-400/80">{col.data_type}</span>
                 {col.constraints && col.constraints.filter(c => c !== 'PRIMARY KEY').map((c, i) => (
                   <span key={i} className="text-[8px] bg-white/5 text-[var(--sb-text-muted)] px-1.5 py-0.5 rounded font-sans">{c}</span>
                 ))}
@@ -127,7 +127,7 @@ const SchemaCard = ({ schema, onDelete, schemaId }) => {
       </AnimatePresence>
 
       <div className="flex items-center gap-2">
-        <button onClick={handleViewSQL} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2 px-3 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/20 transition-all">
+        <button onClick={handleViewSQL} className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/20 transition-all">
           <Code size={14} /> {showSQL ? 'Hide SQL' : 'View SQL'}
         </button>
         <CopyButton text={schemaJSON} label="Copy JSON" />
@@ -152,14 +152,14 @@ const ChatMessage = ({ message, onDelete }) => {
       className={`flex items-start gap-3 ${isUser ? 'justify-end' : ''}`}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg mt-1">
+        <div className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center shadow-lg mt-1" style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)', boxShadow: '0 0 16px rgba(212,160,23,0.25)' }}>
           <Bot size={16} className="text-white" />
         </div>
       )}
       <div className={`max-w-[75%]`}>
         <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
           isUser
-            ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-br-md shadow-lg shadow-indigo-600/20'
+            ? 'bg-gradient-to-r from-amber-700/90 to-red-700/80 text-white rounded-br-md shadow-lg shadow-amber-600/20'
             : 'bg-[var(--sb-bg-elevated)] border border-[var(--sb-border)] text-[var(--sb-text-primary)] rounded-bl-md'
         }`}>
           {type === 'text' && <p className="whitespace-pre-wrap">{content}</p>}
@@ -199,7 +199,7 @@ const ChatInput = ({ onSend, isLoading }) => {
         <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
           {suggestions.map((s, i) => (
             <button key={i} onClick={() => setInput(s)}
-              className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-white/5 hover:bg-indigo-500/10 text-[var(--sb-text-muted)] hover:text-indigo-300 border border-[var(--sb-border)] hover:border-indigo-500/30 transition-all"
+              className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-white/5 hover:bg-amber-500/10 text-[var(--sb-text-muted)] hover:text-amber-300 border border-[var(--sb-border)] hover:border-amber-500/30 transition-all"
             >{s}</button>
           ))}
         </div>
@@ -219,9 +219,9 @@ const ChatInput = ({ onSend, isLoading }) => {
         >
           {isLoading ? (
             <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full typing-dot" />
-              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full typing-dot" />
-              <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full typing-dot" />
+              <div className="w-1.5 h-1.5 bg-amber-400 rounded-full typing-dot" />
+              <div className="w-1.5 h-1.5 bg-amber-400 rounded-full typing-dot" />
+              <div className="w-1.5 h-1.5 bg-amber-400 rounded-full typing-dot" />
             </div>
           ) : (
             <Send size={16} className={input.trim() ? 'text-white' : 'text-[var(--sb-text-muted)]'} />
@@ -295,19 +295,30 @@ const Chatbot = () => {
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     try {
-      const aiResponse = await api.post('/generate-schema', { prompt });
-      setMessages(prev => [
-        ...prev,
-        { sender: 'bot', type: 'schema', content: aiResponse.data, id: aiResponse.data.id },
-      ]);
-      setNotification({ text: `Schema "${aiResponse.data.table_name}" generated!`, type: 'success' });
+      const aiResponse = await api.post('/chat', { prompt });
+      const { type, content } = aiResponse.data;
+
+      if (type === 'schema') {
+        // Schema generation response
+        setMessages(prev => [
+          ...prev,
+          { sender: 'bot', type: 'schema', content: content, id: content.id },
+        ]);
+        setNotification({ text: `Schema "${content.table_name}" generated!`, type: 'success' });
+      } else {
+        // Conversational text response
+        setMessages(prev => [
+          ...prev,
+          { sender: 'bot', type: 'text', content: content, id: uuidv4() },
+        ]);
+      }
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Something went wrong. Please try again.';
       setMessages(prev => [
         ...prev,
-        { sender: 'bot', type: 'text', content: `Sorry, I couldn't generate that schema.\n\n${errorMsg}`, id: uuidv4() },
+        { sender: 'bot', type: 'text', content: `Sorry, I couldn't process that.\n\n${errorMsg}`, id: uuidv4() },
       ]);
-      setNotification({ text: 'Schema generation failed.', type: 'error' });
+      setNotification({ text: 'Request failed.', type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -345,15 +356,15 @@ const Chatbot = () => {
         <AnimatePresence>
           {isLoading && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, #d4a017, #dc2626)' }}>
                 <Bot size={16} className="text-white" />
               </div>
               <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-[var(--sb-bg-elevated)] border border-[var(--sb-border)]">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full typing-dot" />
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full typing-dot" />
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full typing-dot" />
+                    <div className="w-2 h-2 bg-amber-400 rounded-full typing-dot" />
+                    <div className="w-2 h-2 bg-amber-400 rounded-full typing-dot" />
+                    <div className="w-2 h-2 bg-amber-400 rounded-full typing-dot" />
                   </div>
                   <span className="text-xs text-[var(--sb-text-muted)] ml-1">Generating schema...</span>
                 </div>

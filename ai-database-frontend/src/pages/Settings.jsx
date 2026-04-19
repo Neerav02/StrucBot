@@ -6,7 +6,7 @@ const SettingToggle = ({ enabled, onToggle }) => (
   <button
     onClick={onToggle}
     className={`relative w-11 h-6 rounded-full transition-all duration-300 ${
-      enabled ? 'bg-indigo-600 shadow-lg shadow-indigo-600/30' : 'bg-white/10'
+      enabled ? 'bg-amber-600 shadow-lg shadow-amber-600/30' : 'bg-white/10'
     }`}
   >
     <motion.div
@@ -27,8 +27,8 @@ const SettingRow = ({ icon: Icon, title, description, children, delay = 0 }) => 
     className="flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors"
   >
     <div className="flex items-center gap-4">
-      <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-        <Icon size={18} className="text-indigo-400" />
+      <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+        <Icon size={18} className="text-amber-400" />
       </div>
       <div>
         <h3 className="text-sm font-semibold text-white">{title}</h3>
@@ -111,8 +111,8 @@ const Settings = () => {
 
           <div className="p-5">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                <Palette size={18} className="text-indigo-400" />
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <Palette size={18} className="text-amber-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-white">Theme</h3>
@@ -127,14 +127,14 @@ const Settings = () => {
                   onClick={() => setSettings(prev => ({ ...prev, theme: t.value }))}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
                     settings.theme === t.value
-                      ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300'
+                      ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
                       : 'border-[var(--sb-border)] bg-white/[0.02] text-[var(--sb-text-muted)] hover:bg-white/5'
                   }`}
                 >
                   <t.icon size={20} />
                   <span className="text-xs font-medium">{t.label}</span>
                   {settings.theme === t.value && (
-                    <motion.div layoutId="theme-active" className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                    <motion.div layoutId="theme-active" className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                   )}
                 </button>
               ))}
@@ -159,9 +159,9 @@ const Settings = () => {
             description="Current model powering schema generation"
             delay={0.25}
           >
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="text-xs font-mono font-medium text-emerald-300">llama-3.3-70b</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="text-xs font-mono font-medium text-amber-300">llama-3.3-70b</span>
             </div>
           </SettingRow>
         </motion.div>

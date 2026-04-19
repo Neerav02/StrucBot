@@ -133,12 +133,12 @@ const ERDiagram = () => {
         {/* Stats */}
         {schemas.length > 0 && (
           <div className="flex gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-              <Table2 size={14} className="text-indigo-400" />
-              <span className="text-xs font-medium text-indigo-300">{schemas.length} tables</span>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+              <Table2 size={14} className="text-amber-400" />
+              <span className="text-xs font-medium text-amber-300">{schemas.length} tables</span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-              <GitBranch size={14} className="text-cyan-400" />
+              <GitBranch size={14} className="text-amber-400/80" />
               <span className="text-xs font-medium text-cyan-300">
                 {schemas.reduce((acc, s) => acc + s.columns.filter(c => c.name.endsWith('_id') && c.name !== 'id').length, 0)} relationships
               </span>
@@ -149,19 +149,19 @@ const ERDiagram = () => {
         {/* Loading */}
         {isLoading && (
           <div className="glass-card p-20 flex items-center justify-center">
-            <Loader className="animate-spin text-indigo-400" size={24} />
+            <Loader className="animate-spin text-amber-400" size={24} />
           </div>
         )}
 
         {/* Empty state */}
         {!isLoading && schemas.length === 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
-              <GitBranch size={28} className="text-indigo-400" />
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+              <GitBranch size={28} className="text-amber-400" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">No schemas to visualize</h3>
             <p className="text-sm text-[var(--sb-text-muted)] max-w-sm mx-auto">
-              Generate some schemas in <span className="text-indigo-400">Schema Chat</span> first, then come back to see the ER diagram.
+              Generate some schemas in <span className="text-amber-400">Schema Chat</span> first, then come back to see the ER diagram.
             </p>
           </motion.div>
         )}

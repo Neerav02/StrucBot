@@ -69,7 +69,7 @@ const Profile = () => {
 
   if (!user) return (
     <div className="flex-1 flex items-center justify-center">
-      <Loader className="animate-spin text-indigo-400" size={24} />
+      <Loader className="animate-spin text-amber-400" size={24} />
     </div>
   );
 
@@ -94,7 +94,7 @@ const Profile = () => {
               <div className="flex items-center gap-4">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 via-purple-500 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-400 border-2 border-[var(--sb-bg-card)] flex items-center justify-center">
@@ -104,7 +104,7 @@ const Profile = () => {
                 <div>
                   <h2 className="text-xl font-bold text-white">{user.username}</h2>
                   <p className="text-sm text-[var(--sb-text-muted)]">{user.email}</p>
-                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold uppercase tracking-wider text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold uppercase tracking-wider text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                     <Shield size={10} />
                     {user.role}
                   </span>
@@ -155,7 +155,7 @@ const Profile = () => {
                         type="text"
                         value={formData.username}
                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                        className="w-full bg-[var(--sb-bg-primary)] border border-[var(--sb-border)] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all"
+                        className="w-full bg-[var(--sb-bg-primary)] border border-[var(--sb-border)] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
                       />
                     </div>
                   </div>
@@ -167,7 +167,7 @@ const Profile = () => {
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full bg-[var(--sb-bg-primary)] border border-[var(--sb-border)] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all"
+                        className="w-full bg-[var(--sb-bg-primary)] border border-[var(--sb-border)] rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-amber-500/50 transition-all"
                       />
                     </div>
                   </div>
@@ -190,8 +190,8 @@ const Profile = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard icon={Database} label="Schemas Created" value={schemaCount} color="bg-indigo-500/15 text-indigo-400" />
-          <StatCard icon={Shield} label="Account Type" value={user.role === 'admin' ? 'Admin' : 'Free'} color="bg-cyan-500/15 text-cyan-400" />
+          <StatCard icon={Database} label="Schemas Created" value={schemaCount} color="bg-amber-500/15 text-amber-400" />
+          <StatCard icon={Shield} label="Account Type" value={user.role === 'admin' ? 'Admin' : 'Free'} color="bg-cyan-500/15 text-amber-400/80" />
           <StatCard icon={Calendar} label="Member Since" value="Today" color="bg-purple-500/15 text-purple-400" />
         </div>
       </div>

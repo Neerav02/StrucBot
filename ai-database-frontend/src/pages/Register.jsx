@@ -88,7 +88,7 @@ const RegisterForm = () => {
         {/* Logo */}
         <motion.div className="text-center mb-8" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <motion.div
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 via-indigo-500 to-purple-500 shadow-2xl mb-4"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 via-amber-500 to-purple-500 shadow-2xl mb-4"
             animate={{ rotate: [0, -5, 5, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           >
@@ -117,7 +117,7 @@ const RegisterForm = () => {
               <label className="text-xs font-medium text-[var(--sb-text-muted)] uppercase tracking-wider">Username</label>
               <div className="gradient-border">
                 <input id="register-username" type="text" required
-                  className="w-full px-4 py-3 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-indigo-500/50 transition-all text-sm"
+                  className="w-full px-4 py-3 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-amber-500/50 transition-all text-sm"
                   placeholder="Choose a username" value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 />
@@ -129,7 +129,7 @@ const RegisterForm = () => {
               <label className="text-xs font-medium text-[var(--sb-text-muted)] uppercase tracking-wider">Email</label>
               <div className="gradient-border">
                 <input id="register-email" type="email" required
-                  className="w-full px-4 py-3 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-indigo-500/50 transition-all text-sm"
+                  className="w-full px-4 py-3 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-amber-500/50 transition-all text-sm"
                   placeholder="your@email.com" value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
@@ -141,7 +141,7 @@ const RegisterForm = () => {
               <label className="text-xs font-medium text-[var(--sb-text-muted)] uppercase tracking-wider">Password</label>
               <div className="gradient-border relative">
                 <input id="register-password" type={showPassword ? 'text' : 'password'} required
-                  className="w-full px-4 py-3 pr-12 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-indigo-500/50 transition-all text-sm"
+                  className="w-full px-4 py-3 pr-12 bg-[var(--sb-bg-card)] border border-[var(--sb-border)] rounded-2xl text-white placeholder-[var(--sb-text-muted)] focus:outline-none focus:border-amber-500/50 transition-all text-sm"
                   placeholder="Min. 6 characters" value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
@@ -182,7 +182,7 @@ const RegisterForm = () => {
 
             <p className="text-center text-sm text-[var(--sb-text-muted)]">
               Already have an account?{' '}
-              <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Sign in</Link>
+              <Link to="/login" className="text-amber-400 hover:text-amber-300 font-medium transition-colors">Sign in</Link>
             </p>
           </form>
         </div>

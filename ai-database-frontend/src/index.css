@@ -5,46 +5,53 @@
 @tailwind utilities;
 
 /* ====================================
-   STRUCBOT AI — Premium Design System
+   STRUCBOT AI — Neural Ember Design
+   Dark Gold + Crimson · Startup Premium
    ==================================== */
 
 :root {
-  /* Core palette */
-  --sb-bg-primary: #07080d;
-  --sb-bg-secondary: #0d1017;
-  --sb-bg-card: #111621;
-  --sb-bg-elevated: #161d2b;
-  --sb-border: rgba(99, 102, 241, 0.12);
-  --sb-border-hover: rgba(99, 102, 241, 0.3);
-  
-  /* Accent colors */
-  --sb-accent: #6366f1;
-  --sb-accent-light: #818cf8;
-  --sb-accent-glow: rgba(99, 102, 241, 0.4);
-  --sb-cyan: #22d3ee;
-  --sb-cyan-glow: rgba(34, 211, 238, 0.3);
-  --sb-emerald: #34d399;
+  /* Core backgrounds — warm charcoal base */
+  --sb-bg-primary: #08070b;
+  --sb-bg-secondary: #0f0d14;
+  --sb-bg-card: #14111c;
+  --sb-bg-elevated: #1a1625;
+  --sb-border: rgba(212, 160, 23, 0.10);
+  --sb-border-hover: rgba(212, 160, 23, 0.30);
+
+  /* Accent colors — gold + crimson */
+  --sb-accent: #d4a017;
+  --sb-accent-light: #f5c842;
+  --sb-accent-glow: rgba(212, 160, 23, 0.35);
+  --sb-crimson: #dc2626;
+  --sb-crimson-light: #ef4444;
+  --sb-crimson-glow: rgba(220, 38, 38, 0.30);
+  --sb-ember: #e87a1e;
+  --sb-emerald: #22c55e;
   --sb-amber: #fbbf24;
   --sb-rose: #fb7185;
-  
-  /* Text */
-  --sb-text-primary: #f1f5f9;
-  --sb-text-secondary: #94a3b8;
-  --sb-text-muted: #64748b;
-  
+
+  /* Text — warm whites */
+  --sb-text-primary: #f5f0e8;
+  --sb-text-secondary: #b0a28e;
+  --sb-text-muted: #6b5e4f;
+
   /* Gradients */
-  --sb-gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-  --sb-gradient-accent: linear-gradient(135deg, #6366f1 0%, #22d3ee 100%);
-  --sb-gradient-mesh: radial-gradient(at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
-                      radial-gradient(at 80% 70%, rgba(34, 211, 238, 0.08) 0%, transparent 60%),
-                      radial-gradient(at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 80%);
-  
+  --sb-gradient-primary: linear-gradient(135deg, #d4a017 0%, #dc2626 50%, #e87a1e 100%);
+  --sb-gradient-accent: linear-gradient(135deg, #d4a017 0%, #dc2626 100%);
+  --sb-gradient-gold: linear-gradient(135deg, #f5c842 0%, #d4a017 50%, #b8860b 100%);
+  --sb-gradient-ember: linear-gradient(135deg, #dc2626 0%, #e87a1e 50%, #d4a017 100%);
+  --sb-gradient-mesh: radial-gradient(ellipse at 15% 25%, rgba(212, 160, 23, 0.08) 0%, transparent 55%),
+                      radial-gradient(ellipse at 85% 75%, rgba(220, 38, 38, 0.06) 0%, transparent 55%),
+                      radial-gradient(ellipse at 50% 50%, rgba(232, 122, 30, 0.04) 0%, transparent 70%);
+
   /* Shadows */
-  --sb-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --sb-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --sb-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+  --sb-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --sb-shadow-md: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --sb-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
   --sb-shadow-glow: 0 0 30px var(--sb-accent-glow);
-  
+  --sb-shadow-crimson: 0 0 30px var(--sb-crimson-glow);
+  --sb-shadow-3d: 0 4px 0 rgba(0,0,0,0.3), 0 8px 20px rgba(0,0,0,0.3);
+
   /* Motion */
   --sb-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --sb-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -73,59 +80,68 @@ body {
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(212, 160, 23, 0.25);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
+  background: rgba(212, 160, 23, 0.45);
 }
 
-/* ---- UTILITY ANIMATIONS ---- */
+/* ---- ANIMATIONS ---- */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-20px); }
   to { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 160, 23, 0.15); }
+  50% { box-shadow: 0 0 45px rgba(212, 160, 23, 0.35), 0 0 80px rgba(220, 38, 38, 0.1); }
 }
-
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
 }
-
 @keyframes gradient-rotate {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
-
 @keyframes typing-dot {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30% { transform: translateY(-6px); opacity: 1; }
+}
+@keyframes ember-pulse {
+  0%, 100% { opacity: 0.6; filter: blur(40px); }
+  50% { opacity: 1; filter: blur(55px); }
+}
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(212, 160, 23, 0.12); }
+  50% { border-color: rgba(212, 160, 23, 0.25); }
+}
+@keyframes rotate3d {
+  0% { transform: perspective(800px) rotateY(0deg); }
+  100% { transform: perspective(800px) rotateY(360deg); }
+}
+@keyframes tilt-in {
+  from { opacity: 0; transform: perspective(600px) rotateX(8deg) translateY(12px); }
+  to { opacity: 1; transform: perspective(600px) rotateX(0deg) translateY(0); }
 }
 
 /* Background mesh */
@@ -134,23 +150,32 @@ body {
   background-image: var(--sb-gradient-mesh);
 }
 
-/* Glassmorphism card */
+/* Glass card — 3D elevated */
 .glass-card {
-  background: rgba(17, 22, 33, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(20, 17, 28, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--sb-border);
   border-radius: 20px;
+  box-shadow: var(--sb-shadow-md), inset 0 1px 0 rgba(255,255,255,0.03);
+  transform: perspective(800px) translateZ(0);
+  transition: transform 0.4s var(--sb-ease), box-shadow 0.4s var(--sb-ease), border-color 0.4s var(--sb-ease);
 }
-
 .glass-card-hover:hover {
   border-color: var(--sb-border-hover);
-  box-shadow: var(--sb-shadow-glow);
+  box-shadow: var(--sb-shadow-glow), var(--sb-shadow-md), inset 0 1px 0 rgba(255,255,255,0.05);
+  transform: perspective(800px) translateZ(8px) translateY(-2px);
 }
 
 /* Gradient text */
 .gradient-text {
   background: var(--sb-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-gold {
+  background: var(--sb-gradient-gold);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -173,12 +198,28 @@ body {
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.4;
   transition: opacity 0.3s var(--sb-ease);
 }
 .gradient-border:hover::before,
 .gradient-border:focus-within::before {
   opacity: 1;
+}
+
+/* 3D Button base */
+.btn-3d {
+  position: relative;
+  transform: translateY(0);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 6px 16px rgba(0,0,0,0.2);
+}
+.btn-3d:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+}
+.btn-3d:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
 }
 
 /* Skeleton loader */
@@ -196,7 +237,21 @@ body {
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* Button reset for inline/icon buttons */
+/* Ember floating orbs (background decoration) */
+.ember-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ember-pulse 4s ease-in-out infinite;
+}
+.ember-orb-gold {
+  background: radial-gradient(circle, rgba(212, 160, 23, 0.3) 0%, transparent 70%);
+}
+.ember-orb-crimson {
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.2) 0%, transparent 70%);
+}
+
+/* Button reset */
 button {
   font-family: inherit;
   cursor: pointer;
@@ -209,13 +264,13 @@ button {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Particles background for auth pages */
+/* Auth pages background */
 .auth-bg {
   background: var(--sb-bg-primary);
   background-image:
-    radial-gradient(ellipse at 10% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.06) 0%, transparent 70%);
+    radial-gradient(ellipse at 10% 20%, rgba(212, 160, 23, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 80%, rgba(220, 38, 38, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(232, 122, 30, 0.04) 0%, transparent 70%);
 }
 
 /* Noise texture overlay */
@@ -223,7 +278,17 @@ button {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 0;
+}
+
+/* 3D Card tilt animation on entry */
+.tilt-in {
+  animation: tilt-in 0.6s ease-out both;
+}
+
+/* Glowing border animation */
+.glow-border {
+  animation: border-glow 3s ease-in-out infinite;
 }

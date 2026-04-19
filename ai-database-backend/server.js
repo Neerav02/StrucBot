@@ -245,14 +245,66 @@ function generateFallbackSchema(prompt) {
   return { table_name: tableName, columns };
 }
 
-app.post('/api/generate-schema', authenticateToken, aiLimiter, async (req, res) => {
+// Smart Chat endpoint — detects intent (schema request vs conversation)
+app.post('/api/chat', authenticateToken, aiLimiter, async (req, res) => {
   const { prompt } = req.body;
   const userId = req.user.id;
   if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
   if (typeof prompt !== 'string' || prompt.length > 2000) return res.status(400).json({ error: 'Prompt must be under 2000 characters' });
 
-  console.log(`🤖 Prompt from ${req.user.username}: "${prompt}"`);
+  console.log(`💬 Chat from ${req.user.username}: "${prompt}"`);
 
+  // Intent detection — keywords that indicate schema generation
+  const schemaKeywords = [
+    'create', 'make', 'build', 'design', 'generate', 'table', 'schema',
+    'database', 'columns', 'fields', 'entity', 'model', 'with columns',
+    'add table', 'new table', 'define', 'structure'
+  ];
+  const promptLower = prompt.toLowerCase().trim();
+  const isSchemaRequest = schemaKeywords.some(kw => promptLower.includes(kw));
+
+  // --- Conversational response ---
+  if (!isSchemaRequest) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: `You are StrucBot, a friendly and professional AI database architect assistant. 
+You help users design database schemas. When users greet you or ask general questions, respond warmly and helpfully.
+Keep responses concise (2-4 sentences). Be professional but friendly.
+If the user seems to be asking about databases but hasn't specified what to create, guide them with suggestions.
+Never generate JSON or SQL unless explicitly asked to create/design/build a table or schema.
+Sign off as "StrucBot" when appropriate.`
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 300,
+      });
+      const reply = completion.choices[0].message.content.trim();
+      console.log(`💬 (Chat) Reply to ${req.user.username}`);
+      return res.json({ type: 'text', content: reply });
+    } catch (error) {
+      console.warn(`⚠️ Chat AI failed: ${error.message}`);
+      // Friendly fallback responses
+      const greetings = ['hi', 'hello', 'hey', 'hii', 'hiii', 'sup', 'yo', 'good morning', 'good evening', 'good afternoon'];
+      const helpWords = ['help', 'what', 'how', 'can you', 'who'];
+      
+      let fallbackReply;
+      if (greetings.some(g => promptLower.startsWith(g))) {
+        fallbackReply = `Hey there! 👋 Welcome to StrucBot — I'm your AI database architect.\n\nI can help you design complete database schemas from natural language descriptions.\n\nTry something like:\n• "Create a users table with name, email, and role"\n• "Design a blog database with posts and comments"\n• "Build an e-commerce products table"`;
+      } else if (helpWords.some(w => promptLower.includes(w))) {
+        fallbackReply = `I'm StrucBot, your AI database architect! 🤖\n\nHere's what I can do:\n• Generate database schemas from descriptions\n• Export as PostgreSQL, MySQL, or SQLite\n• Generate Prisma & TypeORM code\n• Visualize ER diagrams\n\nJust describe the table you need, and I'll create it!`;
+      } else {
+        fallbackReply = `Thanks for your message! I'm best at designing database schemas.\n\nTry describing a table you need, like: "Create a products table with name, price, and category"`;
+      }
+      return res.json({ type: 'text', content: fallbackReply });
+    }
+  }
+
+  // --- Schema generation ---
   let schema;
   let usedFallback = false;
 
@@ -303,6 +355,35 @@ RULES:
   if (!db.schemas[userId]) db.schemas[userId] = [];
   db.schemas[userId].push(newSchema);
   console.log(`✅ ${usedFallback ? '(Fallback)' : '(AI)'} Schema "${newSchema.table_name}" for ${req.user.username}`);
+  res.json({ type: 'schema', content: newSchema });
+});
+
+// Legacy endpoint (backward compatibility)
+app.post('/api/generate-schema', authenticateToken, aiLimiter, async (req, res) => {
+  const { prompt } = req.body;
+  const userId = req.user.id;
+  if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+
+  let schema;
+  let usedFallback = false;
+  try {
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: `You are an expert database architect. Generate a JSON object for a database schema. Return ONLY raw JSON with "table_name" and "columns" array. Each column has "name", "data_type", "constraints".` },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 1024,
+    });
+    const jsonText = completion.choices[0].message.content.replace(/```json|```/g, '').trim();
+    try { schema = JSON.parse(jsonText); } catch { schema = generateFallbackSchema(prompt); usedFallback = true; }
+    if (!schema.table_name || !Array.isArray(schema.columns)) { schema = generateFallbackSchema(prompt); usedFallback = true; }
+  } catch { schema = generateFallbackSchema(prompt); usedFallback = true; }
+
+  const newSchema = { id: uuidv4(), ...schema, created_at: new Date().toISOString(), prompt, ai_generated: !usedFallback };
+  if (!db.schemas[userId]) db.schemas[userId] = [];
+  db.schemas[userId].push(newSchema);
   res.json(newSchema);
 });
 
