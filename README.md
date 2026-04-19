@@ -13,9 +13,11 @@
 [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
 [![License](https://img.shields.io/badge/License-MIT-22d3ee?style=flat-square)](LICENSE)
 
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-struc--bot.vercel.app-d4a017?style=for-the-badge&logo=vercel&logoColor=white)](https://struc-bot.vercel.app/)
+
 ---
 
-[Features](#-features) · [Architecture](#-system-architecture) · [Getting Started](#-getting-started) · [API Reference](#-api-reference) · [Deployment](#-deployment) · [Roadmap](#-roadmap)
+[Live Demo](https://struc-bot.vercel.app/) · [Features](#-features) · [Architecture](#-system-architecture) · [Getting Started](#-getting-started) · [API Reference](#-api-reference) · [Deployment](#-deployment) · [Roadmap](#-roadmap)
 
 </div>
 
