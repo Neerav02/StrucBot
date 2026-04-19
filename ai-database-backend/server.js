@@ -916,17 +916,24 @@ app.get('/api/schemas/er-diagram', authenticateToken, async (req, res) => {
 
     let mermaid = 'erDiagram\n';
     schemas.forEach(schema => {
+      if (!Array.isArray(schema.columns)) return;
+      
+      mermaid += `  ${schema.table_name} {\n`;
       schema.columns.forEach(col => {
-        const type = col.data_type.replace(/\(.*\)/, '').toLowerCase();
+        if (!col || !col.name) return;
+        const type = (col.data_type || 'VARCHAR').replace(/\(.*\)/, '').toLowerCase();
         const pk = (col.constraints || []).includes('PRIMARY KEY') ? 'PK' : '';
         const fk = col.name.endsWith('_id') && col.name !== 'id' ? 'FK' : '';
         const label = pk || fk || '';
-        mermaid += `  ${schema.table_name} {\n    ${type} ${col.name}${label ? ' ' + label : ''}\n  }\n`;
+        mermaid += `    ${type} ${col.name}${label ? ' ' + label : ''}\n`;
       });
+      mermaid += `  }\n`;
     });
 
     schemas.forEach(schema => {
+      if (!Array.isArray(schema.columns)) return;
       schema.columns.forEach(col => {
+        if (!col || !col.name) return;
         if (col.name.endsWith('_id') && col.name !== 'id') {
           const refTable = col.name.replace('_id', '') + 's';
           const hasRef = schemas.find(s => s.table_name === refTable);
